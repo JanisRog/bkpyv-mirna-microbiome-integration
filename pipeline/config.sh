@@ -78,7 +78,10 @@ run() {
   local tool=$1; shift
   local var="SIF_${tool^^}"
   [[ -s "${!var:-}" ]] || { echo "[ERROR] no container for $tool (did 00_setup finish?)" >&2; exit 1; }
-  apptainer exec -B /shares:/shares "${!var}" "$@"
+  # bind /shares only if the site config does not already do so (avoids duplicate-mount warnings)
+  local bind=(-B /shares:/shares)
+  [[ ":${APPTAINER_BINDPATH:-}:" == *"/shares"* ]] && bind=()
+  apptainer exec "${bind[@]}" "${!var}" "$@"
 }
 
 # manifest_get <sample_id> <column>

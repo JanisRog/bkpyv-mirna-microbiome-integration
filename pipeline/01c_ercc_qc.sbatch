@@ -53,6 +53,11 @@ fi
 run bowtie2 bowtie2-inspect -n "$HOST_INDEX" | awk '{print $1}' | sort -u > "$ER/index_chroms.txt"
 shared=$(cut -f1 "$ER/annotated.bed" | sort -u | comm -12 - "$ER/index_chroms.txt")
 grep -qx chr1 <<< "$shared" || { echo "[ERROR] chromosome names of GENCODE and $HOST_INDEX do not match"; exit 1; }
+# keep only sequences present in the index (GENCODE scaffold names like GL000220.1 never match
+# chrUn_GL000220v1; dropping them changes no counts and avoids bedtools naming warnings)
+for b in annotated ribo; do
+  awk 'NR==FNR{keep[$1]=1; next} ($1 in keep)' "$ER/index_chroms.txt" "$ER/$b.bed" > "$ER/$b.idx.bed"
+done
 
 # ---- per sample ---------------------------------------------------------------
 tail -n +2 "$MANIFEST" | cut -f1 | while read -r SID; do
@@ -69,13 +74,13 @@ tail -n +2 "$MANIFEST" | cut -f1 | while read -r SID; do
   n_in=$(( $(zcat "$IN" | wc -l) / 4 ))
   n_nonrrna=$(( $(zcat "$W/nonrrna.fq.gz" | wc -l) / 4 ))
   n_genome=$(count_reads "$W/genome.bam")
-  run bedtools bedtools intersect -u -a "$W/genome.bam" -b "$ER/ribo.bed" > "$W/ribo.bam"
-  run bedtools bedtools intersect -v -a "$W/genome.bam" -b "$ER/ribo.bed" > "$W/nonribo.bam"
-  run bedtools bedtools intersect -u -a "$W/nonribo.bam" -b "$ER/annotated.bed" > "$W/annot.bam"
+  run bedtools bedtools intersect -u -a "$W/genome.bam" -b "$ER/ribo.idx.bed" > "$W/ribo.bam"
+  run bedtools bedtools intersect -v -a "$W/genome.bam" -b "$ER/ribo.idx.bed" > "$W/nonribo.bam"
+  run bedtools bedtools intersect -u -a "$W/nonribo.bam" -b "$ER/annotated.idx.bed" > "$W/annot.bam"
   n_mtribo=$(count_reads "$W/ribo.bam")
   n_annot=$(count_reads "$W/annot.bam")
   # reads mapped to the genome but outside GENCODE/tRNA: do they match a piRNA sequence?
-  run bedtools bedtools intersect -v -a "$W/nonribo.bam" -b "$ER/annotated.bed" > "$W/unannot.bam"
+  run bedtools bedtools intersect -v -a "$W/nonribo.bam" -b "$ER/annotated.idx.bed" > "$W/unannot.bam"
   run samtools samtools fastq "$W/unannot.bam" 2>/dev/null > "$W/unannot.fq"
   n_pirna=$(run bowtie2 bowtie2 -p "$T" $SMALLRNA_BT2_OPTS --no-unal -x "$ER/pirna" -U "$W/unannot.fq" 2> "$OUT/$SID.ercc_pirna.log" \
             | run samtools samtools view -c -F 260 -)
