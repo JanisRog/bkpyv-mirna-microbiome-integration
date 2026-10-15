@@ -126,7 +126,7 @@ writeLines(summ, file.path(out, "de_summary.txt"))
 # Colour: FDR-significant (q < 0.05) if any; otherwise nominal p < 0.05 shown in lighter colours and
 # labelled as nominal (exploratory study). Viral miRNAs: triangles, separate test family.
 lev <- c("Up, q < 0.05", "Down, q < 0.05", "Up, nominal p < 0.05", "Down, nominal p < 0.05",
-         "Not significant", "Viral (tested separately)")
+         "Not significant", "Viral miRNA (BKPyV, JCPyV)")
 pd <- bind_rows(
   hum |> transmute(miRNA, log2FC, p = p_deseq2, kind = case_when(
     sig_deseq2 & log2FC > 0 ~ lev[1], sig_deseq2 & log2FC < 0 ~ lev[2],
@@ -170,7 +170,7 @@ writeLines(c(
   "| `de_viral_mirna.tsv` | Viral miRNAs, tested as a separate family. |",
   "| `samples_used.tsv` | Samples, group, DESeq2 size factor, human miRNA counts. |",
   "| `normalized_counts_deseq2.tsv` | DESeq2-normalised counts (size factors from human miRNAs). |",
-  "| `Fig1A_volcano.pdf/.png` | Volcano plot. Dark red/blue = FDR q < 0.05; light red/blue = nominal p < 0.05 only (labelled); triangles = viral miRNAs (separate test family). |", "",
+  "| `Fig1A_volcano.pdf/.png` | Volcano plot. Dark red/blue = FDR q < 0.05; light red/blue = nominal p < 0.05 only (labelled); triangles = viral miRNAs (BKPyV, JCPyV only; adjusted as a separate family). |", "",
   "## Columns of de_human_mirna.tsv / de_viral_mirna.tsv", "",
   "| Column | Meaning |", "|---|---|",
   "| `baseMean` | Mean DESeq2-normalised count over all samples. |",
