@@ -34,7 +34,7 @@ for s in samples:
     f = f"{V2}/mirna/{s}/{s}.counts.tsv"
     if os.path.exists(f):
         counts[s] = {l.split("\t")[0]: int(float(l.split("\t")[1])) for l in open(f)}
-mirnas = sorted({m for c in counts.values() for m in c}, key=lambda m: (not m.startswith("bkv-"), m))
+mirnas = sorted({m for c in counts.values() for m in c}, key=lambda m: (m.startswith("hsa-"), m))
 done = [s for s in samples if s in counts]
 write_tsv(f"{QC}/mirna_counts_raw.tsv", ["miRNA"] + done,
           [[m] + [counts[s].get(m, 0) for s in done] for m in mirnas])
@@ -70,7 +70,9 @@ write_tsv(f"{QC}/metaphlan_species_est_reads.tsv", ["clade"] + mg_done,
 # ---- combined QC table ----
 cols = ["sample_id", "group",
         "mi_reads_raw", "mi_pct_with_adapter", "mi_reads_17_30nt", "mi_counts_hsa", "mi_pct_reads_hsa_mirna",
-        "mi_n_hsa_ge10", "mi_counts_bkv", "mi_bkv_cpm",
+        "mi_n_hsa_ge10", "mi_bkv_5p", "mi_bkv_jcv_3p_shared", "mi_jcv_5p", "mi_bkv_5p_cpm",
+        "ercc_reads_rrna", "ercc_reads_genome", "ercc_reads_annotated", "ercc_annotated_fraction",
+        "ercc_c1_pass", "ercc_c2_pass", "ercc_pass",
         "mt_pct_mirna", "mt_pct_rrna", "mt_pct_trna", "mt_pct_artifact",
         "mg_pairs_raw", "mg_pairs_after_fastp", "mg_pairs_nonhuman", "mg_pct_nonhuman",
         "mg_pairs_bk", "mg_pairs_jc", "mg_bk_per_million_qc", "mg_pairs_clean",
@@ -79,6 +81,7 @@ rows = []
 for s in samples:
     mi = load_json(f"{V2}/mirna/{s}/{s}.run_manifest.json") or {}
     mg = load_json(f"{V2}/metagenome/{s}/{s}.run_manifest.json") or {}
+    er = load_json(f"{V2}/mirna/{s}/{s}.ercc.json") or {}
     rt = rnatype.get(s, {})
 
     def pct(a, b):
@@ -89,14 +92,16 @@ for s in samples:
         hit = [float(v) for k, v in rt.items() if key in k.lower()]
         return round(100 * hit[0] / tot, 2) if hit and tot else ""
 
-    lib = (mi.get("mirna_counts_sum_hsa") or 0) + (mi.get("mirna_counts_sum_bkv") or 0)
+    lib = mi.get("mirna_counts_sum_hsa") or 0   # CPM relative to human miRNA counts
     rows.append([
         s, group[s],
         mi.get("reads_raw", ""), pct(mi.get("reads_with_adapter"), mi.get("reads_raw")),
         mi.get("reads_17_30nt", ""), mi.get("mirna_counts_sum_hsa", ""),
         pct(mi.get("mirna_counts_sum_hsa"), mi.get("reads_17_30nt")),
-        mi.get("n_hsa_mirnas_ge10", ""), mi.get("mirna_counts_sum_bkv", ""),
-        round(1e6 * mi["mirna_counts_sum_bkv"] / lib, 1) if lib else "",
+        mi.get("n_hsa_mirnas_ge10", ""), mi.get("bkv_miR_B1_5p", ""), mi.get("bkv_jcv_miR_3p", ""),
+        mi.get("jcv_miR_J1_5p", ""), round(1e6 * mi["bkv_miR_B1_5p"] / lib, 1) if lib else "",
+        er.get("reads_rrna", ""), er.get("reads_genome_mapped", ""), er.get("reads_annotated_rna", ""),
+        er.get("annotated_fraction", ""), er.get("ercc_c1_pass", ""), er.get("ercc_c2_pass", ""), er.get("ercc_pass", ""),
         rt_pct("mirna"), rt_pct("rrna"), rt_pct("trna"), rt_pct("artifact"),
         mg.get("pairs_raw", ""), mg.get("pairs_after_fastp", ""), mg.get("pairs_nonhuman", ""),
         pct(mg.get("pairs_nonhuman"), mg.get("pairs_after_fastp")),

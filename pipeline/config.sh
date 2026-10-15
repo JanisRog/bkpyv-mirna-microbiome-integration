@@ -31,16 +31,29 @@ mirtrace|quay.io/biocontainers/mirtrace:1.0.1--hdfd78af_1
 fastp|quay.io/biocontainers/fastp:1.4.0--h43da1c4_0
 bowtie2|quay.io/biocontainers/bowtie2:2.5.5--h63e9258_1
 metaphlan|quay.io/biocontainers/metaphlan:4.2.6--pyhdfd78af_0
+samtools|quay.io/biocontainers/samtools:1.24--h9dcdb79_1
+bedtools|quay.io/biocontainers/bedtools:2.31.1--h13024bc_3
 "
 
 # miRNA parameters
 MIRBASE_VERSION=23.1
 MIRBASE_URL=https://www.mirbase.org/download_version_files/$MIRBASE_VERSION
-MIRNA_SPECIES_PREFIXES="hsa bkv"                  # one combined reference -> one library size
+MIRNA_SPECIES_PREFIXES="hsa bkv jcv"              # one combined reference -> one library size.
+                                                  # jcv included because jcv-miR-J1-3p == bkv-miR-B1-3p (identical sequence);
+                                                  # bkv-miR-B1-5p differs from jcv-miR-J1-5p at 3/22 nt and is the BKV-specific marker
 ADAPTER_3P=TGGAATTCTCGGGTGCCAAGG                  # Illumina TruSeq Small RNA 3' adapter
 MIRNA_MIN_LEN=17
 MIRNA_MAX_LEN=30
 MIRNA_QUAL=20
+
+# ERCC small-RNA QC standard v1.0 (exrna.org; Murillo et al. Cell 2019):
+#  (1) >= 100,000 reads overlapping annotated human RNA, (2) annotated / genome-mapped (rRNA removed) > 0.5
+GENCODE_VERSION=50
+GENCODE_URL=https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_$GENCODE_VERSION
+RRNA_ACCS="NR_046235.3 NR_023363.1"               # human 45S pre-rRNA (18S/5.8S/28S) and 5S rRNA
+ERCC_MIN_ANNOTATED=100000
+ERCC_MIN_FRACTION=0.5
+SMALLRNA_BT2_OPTS="--end-to-end -D 20 -R 3 -N 0 -L 10 -i S,1,0.50"   # very-sensitive with 10-nt seed for 17-30 nt reads
 
 # Metagenome parameters
 MG_MIN_LEN=50

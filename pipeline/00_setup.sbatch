@@ -33,7 +33,7 @@ done <<< "$CONTAINER_SPECS"
 mv "$CONTAINERS_ENV.tmp" "$CONTAINERS_ENV"
 source "$CONTAINERS_ENV"
 
-# ---- 2. miRBase hsa + bkv reference (DNA alphabet, single-line, first token as ID)
+# ---- 2. miRBase hsa + bkv + jcv reference (DNA alphabet, single-line, first token as ID)
 MIRREF=$REF/mirbase_$MIRBASE_VERSION
 mkdir -p "$MIRREF"
 for f in mature hairpin; do
@@ -45,7 +45,7 @@ for f in mature hairpin; do
     END{if(seq!="")print seq}' "$MIRREF/$f.all.fa" > "$MIRREF/$f.hsa_bkv.fa"
 done
 # fail loudly if the viral miRNAs are missing
-for id in bkv-miR-B1-5p bkv-miR-B1-3p; do grep -qx ">$id" "$MIRREF/mature.hsa_bkv.fa" || { echo "[ERROR] $id missing"; exit 1; }; done
+for id in bkv-miR-B1-5p bkv-miR-B1-3p jcv-miR-J1-5p jcv-miR-J1-3p; do grep -qx ">$id" "$MIRREF/mature.hsa_bkv.fa" || { echo "[ERROR] $id missing"; exit 1; }; done
 grep -qx ">bkv-mir-B1" "$MIRREF/hairpin.hsa_bkv.fa" || { echo "[ERROR] bkv-mir-B1 hairpin missing"; exit 1; }
 
 # ---- 3. polyomavirus genomes + bowtie2 index ---------------------------------

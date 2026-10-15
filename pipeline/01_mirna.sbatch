@@ -8,7 +8,7 @@
 #SBATCH --output=/shares/amr.imm.uzh/data/projects/jaroge/urine_microbiome_bk/v2/logs/%x_%A_%a.out
 #SBATCH --error=/shares/amr.imm.uzh/data/projects/jaroge/urine_microbiome_bk/v2/logs/%x_%A_%a.err
 
-# Per sample: cutadapt (R1 only) -> collapse -> miRDeep2 quantifier on ONE hsa+bkv reference.
+# Per sample: cutadapt (R1 only) -> collapse -> miRDeep2 quantifier on ONE hsa+bkv+jcv reference.
 set -euo pipefail
 source "${SCRIPTS:-/shares/amr.imm.uzh/data/projects/jaroge/urine_microbiome_bk/v2/scripts}/config.sh"
 source "$CONTAINERS_ENV"
@@ -30,7 +30,7 @@ run cutadapt cutadapt -j "$THREADS" -a "$ADAPTER_3P" --discard-untrimmed \
 # 2. collapse to miRDeep2 read format >seq_<i>_x<count>
 zcat "$OUT/$SID.trim.fastq.gz" | awk 'NR%4==2{c[$0]++} END{i=0; for(s in c){i++; print ">seq_"i"_x"c[s]; print s}}' > "$OUT/$SID.collapsed.fa"
 
-# 3. quantify (no -t species filter: the reference is already hsa+bkv only)
+# 3. quantify (no -t species filter: the reference is already hsa+bkv+jcv only)
 WORK=$OUT/quantifier
 rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK"
 run mirdeep2 quantifier.pl -p "$MIRREF/hairpin.hsa_bkv.fa" -m "$MIRREF/mature.hsa_bkv.fa" \
@@ -56,7 +56,9 @@ m = {
   "reads_with_adapter": cj["read_counts"]["read1_with_adapter"],
   "reads_17_30nt": cj["read_counts"]["output"],
   "mirna_counts_sum_hsa": sum(v for k, v in counts.items() if k.startswith("hsa-")),
-  "mirna_counts_sum_bkv": sum(v for k, v in counts.items() if k.startswith("bkv-")),
+  "bkv_miR_B1_5p": counts.get("bkv-miR-B1-5p", 0),
+  "bkv_jcv_miR_3p": counts.get("bkv-miR-B1-3p", 0),   # identical to jcv-miR-J1-3p, not virus-specific
+  "jcv_miR_J1_5p": counts.get("jcv-miR-J1-5p", 0),
   "n_hsa_mirnas_ge10": sum(1 for k, v in counts.items() if k.startswith("hsa-") and v >= 10),
 }
 json.dump(m, open(f"{out}/{sid}.run_manifest.json", "w"), indent=1)
