@@ -77,7 +77,16 @@ meta_f, sra_f, mirna_dir, mg_dir, out_f = sys.argv[1:]
 ena = {r["SampleName"].strip().lstrip("R"): {"run_accession": r["Run"], "read_count": r["spots"]}
        for r in csv.DictReader(open(sra_f)) if r.get("Run")}
 rows, problems = [], []
-for r in csv.DictReader(open(meta_f)):
+# tolerate Excel exports: BOM, CRLF, header case/whitespace, ; or , delimiter
+text = open(meta_f, encoding="utf-8-sig", newline="").read().replace("\r\n", "\n").replace("\r", "\n")
+delim = ";" if text.splitlines()[0].count(";") > text.splitlines()[0].count(",") else ","
+reader = csv.DictReader(text.splitlines(), delimiter=delim)
+reader.fieldnames = [h.strip().lower() for h in reader.fieldnames]
+if not {"sample", "group"} <= set(reader.fieldnames):
+    sys.exit(f"[ERROR] {meta_f}: need columns sample,group; found {reader.fieldnames!r}")
+for r in reader:
+    if not (r.get("sample") or "").strip():
+        continue
     sid = r["sample"].strip().upper()
     num = sid.lstrip("S")
     group = {"treatment": "DNAemia", "control": "control"}[r["group"].strip().lower()]
