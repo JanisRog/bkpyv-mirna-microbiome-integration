@@ -133,7 +133,7 @@ pd <- bind_rows(
     nominal & log2FC > 0 ~ lev[3], nominal & log2FC < 0 ~ lev[4], TRUE ~ lev[5]),
     lab = ifelse(nominal, sub("^hsa-", "", miRNA), NA)),
   vi |> transmute(miRNA, log2FC, p = p_deseq2, kind = lev[6],
-                  lab = ifelse(miRNA == "bkv-miR-B1-3p", "bkv-miR-B1-3p / jcv-miR-J1-3p (identical)", miRNA))) |>
+                  lab = ifelse(miRNA == "bkv-miR-B1-3p", "bkv-miR-B1-3p / jcv-miR-J1-3p", miRNA))) |>
   filter(!is.na(p)) |> mutate(kind = factor(kind, levels = lev))
 present <- lev[lev %in% pd$kind & lev != "Not significant"]
 cols <- c("#B2182B", "#2166AC", "#F4A582", "#92C5DE", "grey70", "#7B3294"); names(cols) <- lev
