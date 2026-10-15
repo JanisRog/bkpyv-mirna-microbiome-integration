@@ -23,7 +23,7 @@ All tools run from pinned BioContainers images, listed in `pipeline/config.sh`.
 | 0 | `00_setup.sbatch` | Pulls containers, builds the miRBase 23.1 *hsa* + *bkv* + *jcv* reference and the BKPyV/JCPyV bowtie2 index, and writes `sample_manifest.tsv` from the sample sheet and the NCBI SRA run table |
 | 1 | `01_mirna.sbatch` | Small RNA (R1 only): cutadapt (TruSeq small-RNA adapter, untrimmed reads discarded, 17–30 nt, Q20), then miRDeep2 `quantifier.pl` against one combined human + BKPyV + JCPyV reference. bkv-miR-B1-3p is identical in sequence to jcv-miR-J1-3p; bkv-miR-B1-5p is BKPyV-specific |
 | 1b | `01b_mirtrace.sbatch` | miRTrace library-composition QC |
-| 1c | `01c_ercc_qc.sbatch` | ERCC small RNA-seq QC standard v1.0: rRNA removal, GRCh38 alignment, overlap with GENCODE v50 + tRNA annotation (≥100,000 annotated reads; annotated fraction >0.5) |
+| 1c | `01c_ercc_qc.sbatch` | ERCC small RNA-seq QC standard v1.0: rRNA removal, GRCh38 alignment, overlap with GENCODE v50 + tRNA annotation, remaining reads matched to piRBase v3.0 human gold piRNAs (≥100,000 annotated reads; annotated fraction >0.5) |
 | 2 | `02_metagenome.sbatch` | Metagenome: fastp, human read removal (bowtie2, GRCh38 no-alt), BKPyV/JCPyV read counting and removal, MetaPhlAn 4.2.6 (`mpa_vJan25_CHOCOPhlAnSGB_202503`) |
 | 3 | `03_collect_qc.py` | Merges outputs into count matrices and a per-sample QC table |
 

@@ -50,6 +50,7 @@ MIRNA_QUAL=20
 #  (1) >= 100,000 reads overlapping annotated human RNA, (2) annotated / genome-mapped (rRNA removed) > 0.5
 GENCODE_VERSION=50
 GENCODE_URL=https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_$GENCODE_VERSION
+PIRNA_URL=http://bigdata.ibp.ac.cn/piRBase/download/v3.0/fasta/hsa.gold.fa.gz   # piRBase v3.0 human gold set (exceRpt also annotates piRNA by sequence)
 RRNA_ACCS="NR_046235.3 NR_023363.1"               # human 45S pre-rRNA (18S/5.8S/28S) and 5S rRNA
 ERCC_MIN_ANNOTATED=100000
 ERCC_MIN_FRACTION=0.5

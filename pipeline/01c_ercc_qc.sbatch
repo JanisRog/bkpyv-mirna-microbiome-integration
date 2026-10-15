@@ -9,10 +9,11 @@
 
 # ERCC small-RNA QC standard v1.0 on the trimmed 17-30 nt reads from 01_mirna:
 #   rRNA removal (45S + 5S) -> GRCh38 alignment -> overlap with annotated RNA
-#   (GENCODE all genes incl. miRNA/snoRNA/snRNA/lncRNA/mRNA + GENCODE tRNA set).
+#   (GENCODE all genes incl. miRNA/snoRNA/snRNA/lncRNA/mRNA + GENCODE tRNA set), then reads left
+#   unannotated are matched to piRBase v3.0 human gold piRNA sequences (as exceRpt does by sequence).
 #   criterion 1: annotated reads >= ERCC_MIN_ANNOTATED
 #   criterion 2: annotated / genome-mapped non-ribosomal reads > ERCC_MIN_FRACTION
-# Deviation from exceRpt: piRNA and circRNA annotations are not included (reported in Methods).
+# Deviation from exceRpt: circRNA annotation not included; piRNA = piRBase gold set only (reported in Methods).
 # Small data, so all samples run sequentially in one job; finished samples are skipped.
 set -euo pipefail
 source "${SCRIPTS:-/shares/amr.imm.uzh/data/projects/jaroge/urine_microbiome_bk/v2/scripts}/config.sh"
@@ -44,6 +45,10 @@ if [[ ! -s "$ER/annotated.bed" ]]; then
   done
   mv "$ER/annot.bed" "$ER/annotated.bed"
 fi
+if [[ ! -s "$ER/pirna.1.bt2" ]]; then
+  curl -fsSL --retry 5 "$PIRNA_URL" | gunzip | awk '/^>/{h=$0; next} length($0)>=18{print h; print toupper($0)}' > "$ER/pirna.fa"
+  run bowtie2 bowtie2-build -q "$ER/pirna.fa" "$ER/pirna"
+fi
 # chromosome naming must match the bowtie2 index
 run bowtie2 bowtie2-inspect -n "$HOST_INDEX" | awk '{print $1}' | sort -u > "$ER/index_chroms.txt"
 shared=$(cut -f1 "$ER/annotated.bed" | sort -u | comm -12 - "$ER/index_chroms.txt")
@@ -53,7 +58,7 @@ grep -qx chr1 <<< "$shared" || { echo "[ERROR] chromosome names of GENCODE and $
 tail -n +2 "$MANIFEST" | cut -f1 | while read -r SID; do
   OUT=$OUT_MIRNA/$SID
   IN=$OUT/$SID.trim.fastq.gz
-  [[ -s "$OUT/$SID.ercc.json" ]] && { echo "[SKIP] $SID"; continue; }
+  grep -q reads_pirna "$OUT/$SID.ercc.json" 2>/dev/null && { echo "[SKIP] $SID"; continue; }
   [[ -s "$IN" ]] || { echo "[WARN] $SID: no trimmed reads, run 01_mirna first"; continue; }
   W=$TMP_ROOT/ercc_$SID; mkdir -p "$W"
 
@@ -69,20 +74,29 @@ tail -n +2 "$MANIFEST" | cut -f1 | while read -r SID; do
   run bedtools bedtools intersect -u -a "$W/nonribo.bam" -b "$ER/annotated.bed" > "$W/annot.bam"
   n_mtribo=$(count_reads "$W/ribo.bam")
   n_annot=$(count_reads "$W/annot.bam")
+  # reads mapped to the genome but outside GENCODE/tRNA: do they match a piRNA sequence?
+  run bedtools bedtools intersect -v -a "$W/nonribo.bam" -b "$ER/annotated.bed" > "$W/unannot.bam"
+  run samtools samtools fastq "$W/unannot.bam" 2>/dev/null > "$W/unannot.fq"
+  n_pirna=$(run bowtie2 bowtie2 -p "$T" $SMALLRNA_BT2_OPTS --no-unal -x "$ER/pirna" -U "$W/unannot.fq" 2> "$OUT/$SID.ercc_pirna.log" \
+            | run samtools samtools view -c -F 260 -)
 
-  python3 - "$SID" "$OUT" "$n_in" "$n_nonrrna" "$n_genome" "$n_mtribo" "$n_annot" <<PY
+  python3 - "$SID" "$OUT" "$n_in" "$n_nonrrna" "$n_genome" "$n_mtribo" "$n_annot" "$n_pirna" <<PY
 import json, sys
 sid, out = sys.argv[1], sys.argv[2]
-n_in, n_nonrrna, n_genome, n_mtribo, n_annot = map(int, sys.argv[3:])
+n_in, n_nonrrna, n_genome, n_mtribo, n_annot_gc, n_pirna = map(int, sys.argv[3:])
 denom = n_genome - n_mtribo
+n_annot = n_annot_gc + n_pirna
 frac = n_annot / denom if denom else 0.0
+frac_gc = n_annot_gc / denom if denom else 0.0
 m = {
   "sample_id": sid, "standard": "ERCC small RNA-seq QC v1.0 (exrna.org)",
   "gencode_version": $GENCODE_VERSION, "rrna_accessions": "$RRNA_ACCS", "host_index": "$HOST_INDEX",
-  "bowtie2_opts": "$SMALLRNA_BT2_OPTS", "annotation_excludes": "piRNA, circRNA",
+  "bowtie2_opts": "$SMALLRNA_BT2_OPTS", "pirna_reference": "$PIRNA_URL", "annotation_excludes": "circRNA",
   "reads_17_30nt": n_in, "reads_rrna": n_in - n_nonrrna,
   "reads_genome_mapped": n_genome, "reads_mt_or_annotated_ribosomal": n_mtribo,
+  "reads_annotated_gencode_trna": n_annot_gc, "reads_pirna": n_pirna,
   "reads_annotated_rna": n_annot, "annotated_fraction": round(frac, 4),
+  "annotated_fraction_without_pirna": round(frac_gc, 4),
   "ercc_c1_pass": n_annot >= $ERCC_MIN_ANNOTATED, "ercc_c2_pass": frac > $ERCC_MIN_FRACTION,
 }
 m["ercc_pass"] = m["ercc_c1_pass"] and m["ercc_c2_pass"]
