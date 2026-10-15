@@ -132,7 +132,8 @@ pd <- bind_rows(
     sig_deseq2 & log2FC > 0 ~ lev[1], sig_deseq2 & log2FC < 0 ~ lev[2],
     nominal & log2FC > 0 ~ lev[3], nominal & log2FC < 0 ~ lev[4], TRUE ~ lev[5]),
     lab = ifelse(nominal, sub("^hsa-", "", miRNA), NA)),
-  vi |> transmute(miRNA, log2FC, p = p_deseq2, kind = lev[6], lab = miRNA)) |>
+  vi |> transmute(miRNA, log2FC, p = p_deseq2, kind = lev[6],
+                  lab = ifelse(miRNA == "bkv-miR-B1-3p", "bkv-miR-B1-3p / jcv-miR-J1-3p (identical)", miRNA))) |>
   filter(!is.na(p)) |> mutate(kind = factor(kind, levels = lev))
 present <- lev[lev %in% pd$kind & lev != "Not significant"]
 cols <- c("#B2182B", "#2166AC", "#F4A582", "#92C5DE", "grey70", "#7B3294"); names(cols) <- lev
@@ -144,7 +145,7 @@ v <- ggplot(pd, aes(log2FC, -log10(p))) +
                                          linetype = "dashed", colour = "grey30") } +
   geom_point(data = ~ filter(.x, kind == "Not significant"), colour = "grey75", size = 1.2) +
   geom_point(data = ~ filter(.x, kind != "Not significant"), aes(colour = kind, shape = kind), size = 2.3) +
-  geom_text_repel(aes(label = lab), size = 2.8, max.overlaps = 40, min.segment.length = 0,
+  geom_text_repel(aes(label = lab), size = 2.8, max.overlaps = 40, min.segment.length = 0, seed = 42, box.padding = 0.45, force = 3,
                   segment.colour = "grey60", na.rm = TRUE) +
   scale_colour_manual(values = cols[present], breaks = present, name = NULL) +
   scale_shape_manual(values = shps[present], breaks = present, name = NULL) +
