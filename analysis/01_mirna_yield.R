@@ -110,3 +110,5 @@ writeLines(c(
          " reads on annotated human RNA (ERCC small RNA-seq QC standard v1.0, exrna.org; Murillo et al. Cell 2019).")
 ), file.path(out, "README.md"))
 cat(readLines(file.path(out, "mirna_yield_stats.txt")), sep = "\n")
+
+writeLines(capture.output(sessionInfo()), file.path(out, "sessionInfo.txt"))
