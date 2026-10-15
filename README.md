@@ -49,7 +49,7 @@ The SLURM headers (partition, log paths) are set for the University of Zurich Sc
 ## Data availability
 
 - Shotgun metagenomes: NCBI BioProject [PRJNA1252894](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1252894).
-- Small RNA sequencing: accession to be added.
+- Small RNA sequencing: available from the corresponding author upon reasonable request.
 
 No patient-level clinical data are included in this repository.
 
