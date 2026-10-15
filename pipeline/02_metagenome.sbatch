@@ -54,7 +54,8 @@ fi
 
 # 4. bacterial profile
 if [[ ! -s "$OUT/$SID.metaphlan.txt" ]]; then
-  run metaphlan metaphlan -1 "$OUT/$SID.clean_1.fq.gz" -2 "$OUT/$SID.clean_2.fq.gz" --input_type fastq \
+  # paired files as one comma-separated input (MetaPhlAn 4.2 only allows -1/-2 together with --subsampling_paired)
+  run metaphlan metaphlan "$OUT/$SID.clean_1.fq.gz,$OUT/$SID.clean_2.fq.gz" --input_type fastq \
     --db_dir "$MPA_DB" -x "$MPA_INDEX" --offline --nproc "$T" -t rel_ab_w_read_stats \
     --mapout "$OUT/$SID.metaphlan_map.bz2" --tmp_dir "$TMP" --sample_id "$SID" \
     -o "$TMP/metaphlan.txt" 2> "$OUT/$SID.metaphlan.log"
