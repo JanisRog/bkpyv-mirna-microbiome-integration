@@ -1,0 +1,30 @@
+# sequencing data and large outputs never go into the repo
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.sam
+*.bz2
+*.sif
+*.img
+*.bt2
+*.bt2l
+
+# patient/sample metadata stays on the cluster
+metadata/
+*.csv
+
+# generated tables (shared via the manuscript supplement instead)
+qc/
+results/
+logs/
+tmp/
+
+# local clutter
+.DS_Store
+__pycache__/
+*.pyc
+.Rhistory
+.RData
+.Rproj.user/
