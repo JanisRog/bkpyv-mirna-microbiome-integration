@@ -67,13 +67,15 @@ for ext in pkl 1.bt2l rev.1.bt2l; do
   [[ -s "$MPA_DB/$MPA_INDEX.$ext" ]] || { echo "[ERROR] missing $MPA_DB/$MPA_INDEX.$ext"; exit 1; }
 done
 
-# ---- 6. sample manifest (metadata x miRNA FASTQ x ENA run table) -------------
-curl -fsSL "https://www.ebi.ac.uk/ena/portal/api/filereport?accession=$ENA_PROJECT&result=read_run&fields=run_accession,sample_title,library_name,read_count&format=tsv" \
-  -o "$V2/ena_runs.tsv"
-python3 - "$METADATA" "$V2/ena_runs.tsv" "$MIRNA_RAW" "$MG_RAW" "$MANIFEST" <<'PY'
+# ---- 6. sample manifest (metadata x miRNA FASTQ x NCBI SRA run table) ------
+# NCBI SRA run table (primary archive for PRJNA projects); SampleName "R<N>" = sample number N
+curl -fsSL --retry 5 --retry-delay 10 "https://trace.ncbi.nlm.nih.gov/Traces/sra-db-be/runinfo?acc=$SRA_PROJECT" \
+  -o "$V2/sra_runinfo.csv"
+python3 - "$METADATA" "$V2/sra_runinfo.csv" "$MIRNA_RAW" "$MG_RAW" "$MANIFEST" <<'PY'
 import csv, os, sys
-meta_f, ena_f, mirna_dir, mg_dir, out_f = sys.argv[1:]
-ena = {r["sample_title"].strip(): r for r in csv.DictReader(open(ena_f), delimiter="\t")}
+meta_f, sra_f, mirna_dir, mg_dir, out_f = sys.argv[1:]
+ena = {r["SampleName"].strip().lstrip("R"): {"run_accession": r["Run"], "read_count": r["spots"]}
+       for r in csv.DictReader(open(sra_f)) if r.get("Run")}
 rows, problems = [], []
 for r in csv.DictReader(open(meta_f)):
     sid = r["sample"].strip().upper()
@@ -90,7 +92,7 @@ if problems:
     sys.exit("[ERROR]\n" + "\n".join(problems))
 rows.sort(key=lambda x: int(x[1]))
 with open(out_f, "w") as fh:
-    fh.write("\t".join(["sample_id","sample_num","group","mirna_r1","mg_run","mg_ena_read_pairs","mg_r1","mg_r2"]) + "\n")
+    fh.write("\t".join(["sample_id","sample_num","group","mirna_r1","mg_run","mg_sra_read_pairs","mg_r1","mg_r2"]) + "\n")
     for x in rows: fh.write("\t".join(map(str, x)) + "\n")
 print(f"[INFO] manifest: {len(rows)} samples, " +
       ", ".join(f"{g}={sum(r[2]==g for r in rows)}" for g in ("DNAemia","control")))

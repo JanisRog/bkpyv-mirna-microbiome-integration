@@ -20,7 +20,7 @@ All tools run from pinned BioContainers images, listed in `pipeline/config.sh`.
 
 | Step | Script | What it does |
 |---|---|---|
-| 0 | `00_setup.sbatch` | Pulls containers, builds the miRBase 23.1 *hsa* + *bkv* reference and the BKPyV/JCPyV bowtie2 index, and writes `sample_manifest.tsv` from the sample sheet and the ENA run table |
+| 0 | `00_setup.sbatch` | Pulls containers, builds the miRBase 23.1 *hsa* + *bkv* reference and the BKPyV/JCPyV bowtie2 index, and writes `sample_manifest.tsv` from the sample sheet and the NCBI SRA run table |
 | 1 | `01_mirna.sbatch` | Small RNA (R1 only): cutadapt (TruSeq small-RNA adapter, untrimmed reads discarded, 17–30 nt, Q20), then miRDeep2 `quantifier.pl` against one combined human + BKPyV reference |
 | 1b | `01b_mirtrace.sbatch` | miRTrace library-composition QC |
 | 2 | `02_metagenome.sbatch` | Metagenome: fastp, human read removal (bowtie2, GRCh38 no-alt), BKPyV/JCPyV read counting and removal, MetaPhlAn 4.2.6 (`mpa_vJan25_CHOCOPhlAnSGB_202503`) |
