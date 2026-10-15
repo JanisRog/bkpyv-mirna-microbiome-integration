@@ -40,11 +40,15 @@ write_tsv(f"{QC}/mirna_counts_raw.tsv", ["miRNA"] + done,
           [[m] + [counts[s].get(m, 0) for s in done] for m in mirnas])
 
 # ---- miRTrace RNA-type composition (optional) ----
+# mirtrace-stats-rnatype.tsv: rows = RNA type (miRNA, rRNA, tRNA, artifact, unknown), columns = samples
 rnatype = {}
 rt_files = glob.glob(f"{V2}/mirna/mirtrace/report/mirtrace-stats-rnatype.tsv")
 if rt_files:
-    for r in csv.DictReader(open(rt_files[0]), delimiter="\t"):
-        rnatype[r["SAMPLE NAME"] if "SAMPLE NAME" in r else r[list(r)[0]]] = r
+    rt_rows = list(csv.reader(open(rt_files[0]), delimiter="\t"))
+    rt_samples = rt_rows[0][1:]
+    for r in rt_rows[1:]:
+        for smp, v in zip(rt_samples, r[1:]):
+            rnatype.setdefault(smp, {})[r[0].lower()] = float(v)
 
 # ---- MetaPhlAn species matrices ----
 rel, est = {}, {}
@@ -73,7 +77,7 @@ cols = ["sample_id", "group",
         "mi_n_hsa_ge10", "mi_bkv_5p", "mi_bkv_jcv_3p_shared", "mi_jcv_5p", "mi_bkv_5p_cpm",
         "ercc_reads_rrna", "ercc_reads_genome", "ercc_reads_annotated", "ercc_annotated_fraction",
         "ercc_c1_pass", "ercc_c2_pass", "ercc_pass",
-        "mt_pct_mirna", "mt_pct_rrna", "mt_pct_trna", "mt_pct_artifact",
+        "mt_pct_mirna", "mt_pct_rrna", "mt_pct_trna", "mt_pct_artifact", "mt_pct_unknown",
         "mg_pairs_raw", "mg_pairs_after_fastp", "mg_pairs_nonhuman", "mg_pct_nonhuman",
         "mg_pairs_bk", "mg_pairs_jc", "mg_bk_per_million_qc", "mg_pairs_clean",
         "mg_est_bacterial_reads", "mg_n_species"]
@@ -88,9 +92,8 @@ for s in samples:
         return round(100 * a / b, 3) if a is not None and b else ""
 
     def rt_pct(key):
-        tot = sum(float(v) for k, v in rt.items() if k != "SAMPLE NAME" and v.replace(".", "").isdigit())
-        hit = [float(v) for k, v in rt.items() if key in k.lower()]
-        return round(100 * hit[0] / tot, 2) if hit and tot else ""
+        tot = sum(rt.values())
+        return round(100 * rt[key] / tot, 2) if key in rt and tot else ""
 
     lib = mi.get("mirna_counts_sum_hsa") or 0   # CPM relative to human miRNA counts
     rows.append([
@@ -102,7 +105,7 @@ for s in samples:
         mi.get("jcv_miR_J1_5p", ""), round(1e6 * mi["bkv_miR_B1_5p"] / lib, 1) if lib else "",
         er.get("reads_rrna", ""), er.get("reads_genome_mapped", ""), er.get("reads_annotated_rna", ""),
         er.get("annotated_fraction", ""), er.get("ercc_c1_pass", ""), er.get("ercc_c2_pass", ""), er.get("ercc_pass", ""),
-        rt_pct("mirna"), rt_pct("rrna"), rt_pct("trna"), rt_pct("artifact"),
+        rt_pct("mirna"), rt_pct("rrna"), rt_pct("trna"), rt_pct("artifact"), rt_pct("unknown"),
         mg.get("pairs_raw", ""), mg.get("pairs_after_fastp", ""), mg.get("pairs_nonhuman", ""),
         pct(mg.get("pairs_nonhuman"), mg.get("pairs_after_fastp")),
         mg.get("pairs_bk", ""), mg.get("pairs_jc", ""),
