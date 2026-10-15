@@ -100,9 +100,10 @@ for r in reader:
 if problems:
     sys.exit("[ERROR]\n" + "\n".join(problems))
 rows.sort(key=lambda x: int(x[1]))
-with open(out_f, "w") as fh:
+with open(out_f + ".tmp", "w") as fh:
     fh.write("\t".join(["sample_id","sample_num","group","mirna_r1","mg_run","mg_sra_read_pairs","mg_r1","mg_r2"]) + "\n")
     for x in rows: fh.write("\t".join(map(str, x)) + "\n")
+os.replace(out_f + ".tmp", out_f)   # atomic: running array tasks never see a half-written manifest
 print(f"[INFO] manifest: {len(rows)} samples, " +
       ", ".join(f"{g}={sum(r[2]==g for r in rows)}" for g in ("DNAemia","control")))
 PY
