@@ -17,17 +17,33 @@ Statistics and figures, run on the tables from `pipeline/03_collect_qc.py`. Ever
 
 
 
-## Running
+## Running (full order; R = local results folder)
 
 ```bash
-R=~/Documents/BKPyV_miRNA_microbiome/results
-Rscript 01_mirna_yield.R $R/qc/qc_combined_final_mirna.tsv <sample_manifest.tsv> $R/mirna/yield
+R=~/Documents/BKPyV_miRNA_microbiome/results; A=analysis
+Q=$R/qc/qc_combined_final.tsv; E=$R/qc/metaphlan_species_est_reads.tsv
+Rscript $A/01_mirna_yield.R $Q <sample_manifest.tsv> $R/mirna/yield
 for s in primary sensitivity; do
-  Rscript 02_mirna_de.R $R/qc/mirna_counts_raw.tsv $R/qc/qc_combined_final_mirna.tsv $s $R/mirna/de_$s
-  python3 03_compare_nog2024.py $R/mirna/de_$s/de_human_mirna.tsv $R/mirna/de_$s/de_viral_mirna.tsv \
+  Rscript $A/02_mirna_de.R $R/qc/mirna_counts_raw.tsv $Q $s $R/mirna/de_$s
+  python3 $A/03_compare_nog2024.py $R/mirna/de_$s/de_human_mirna.tsv $R/mirna/de_$s/de_viral_mirna.tsv \
     $R/mirna/comparison_nog2024/nog2024_vs_$s.tsv
 done
+Rscript $A/04_mir200_shedding.R $R/qc/mirna_counts_raw.tsv $Q $R/integration/mir200_shedding
+# microbiome: pass arguments explicitly (zsh does not word-split a variable holding "dir 0.01")
+Rscript $A/05_microbiome.R $E $Q $R/microbiome/primary
+Rscript $A/05_microbiome.R $E $Q $R/microbiome/sens_crosstalk 0.01
+Rscript $A/05_microbiome.R $E $Q $R/microbiome/sens_without_S18 0 S18
+Rscript $A/05_microbiome.R $E $Q $R/microbiome/paired11 0 S1,S3,S5,S11,S12,S13,S15,S16,S17,S20,S22
+Rscript $A/08_heatmap.R $R/microbiome/paired11/genus_relative_abundance.tsv $R/mirna/de_primary $Q $R/integration/heatmap
+Rscript $A/06_sankey.R $R/microbiome/paired11/genus_relative_abundance.tsv $R/mirna/de_primary $Q \
+  $R/integration/sankey $E $A/assets/sankey_legend.png
+Rscript $A/07_main_figures.R $R/mirna/yield $R/mirna/de_primary $R/microbiome/primary $R/integration/heatmap \
+  $R/integration/sankey $R/../figures
+Rscript $A/09_supp_figures.R $R/mirna/de_sensitivity $R/microbiome/primary $R/microbiome/sens_crosstalk \
+  $R/microbiome/sens_without_S18 $R/integration/mir200_shedding $R/../figures/supplementary
 ```
+
+The paired-sample exclusion list = samples failing ERCC criterion 1 (`ercc_c1_pass` in the QC table).
 
 ## Environment
 
