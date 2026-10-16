@@ -205,16 +205,16 @@ if (!is.na(legend_png)) {                                       # author-designe
   # place the legend so its BK colour bar sits under the BK strips:
   #   CB_FRAC = centre of the colour bar within the legend image (measured on assets/sankey_legend.png)
   #   LEG_W   = legend width as a fraction of the canvas; bk_npc = BK strip centre as a fraction of the canvas
-  CB_FRAC <- 0.558; LEG_W <- 0.43
+  CB_FRAC <- 0.558; LEG_W <- 0.56
   m <- MARGIN_PT / 72 / CANVAS_W
   bk_npc <- m + (X_S + SNODE_W / 2 + BK_W / 2 - X_LIM[1]) / diff(X_LIM) * (1 - 2 * m)
   leg <- wrap_elements(full = grid::rasterGrob(img, interpolate = TRUE, width = unit(LEG_W, "npc"),
                                                x = unit(bk_npc - (CB_FRAC - 0.5) * LEG_W, "npc"), y = unit(0.6, "npc")))
 }
-p_full <- p / leg + plot_layout(heights = c(1, if (is.na(legend_png)) 0.22 else 0.2))
+p_full <- p / leg + plot_layout(heights = c(1, if (is.na(legend_png)) 0.22 else 0.27))
 saveRDS(p_full, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
-ggsave(file.path(out, "Fig2_sankey.pdf"), p_full, width = CANVAS_W, height = 8, bg = "white")
-ggsave(file.path(out, "Fig2_sankey.png"), p_full, width = CANVAS_W, height = 8, dpi = 300, bg = "white")
+ggsave(file.path(out, "Fig2_sankey.pdf"), p_full, width = CANVAS_W, height = 8.5, bg = "white")
+ggsave(file.path(out, "Fig2_sankey.png"), p_full, width = CANVAS_W, height = 8.5, dpi = 300, bg = "white")
 
 write_tsv(links, file.path(out, "sankey_links.tsv"))
 write_tsv(tibble(miRNA = mir, rank_by_p = match(mir, de$miRNA), log2FC = de$log2FC[match(mir, de$miRNA)],
