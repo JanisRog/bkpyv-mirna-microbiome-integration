@@ -9,7 +9,7 @@
 #                 (3p sequence identical to jcv-miR-J1-3p)
 #   node order  : genera and miRNAs ordered by the mean position of their samples (fewer crossings)
 #   middle      : one stacked bar per sample = its genus composition (ribbons flow into their segment),
-#                 outlined in the group colour; grey strip right of it = urinary BKPyV DNA (metagenome)
+#                 thin black outline; grey strip right of it = urinary BKPyV DNA (metagenome)
 # Concept follows the descriptive Sankey of the first submission, simplified (genus level, fewer elements).
 #
 # Usage: Rscript 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_species_est_reads.tsv>
@@ -133,7 +133,7 @@ p <- ggplot() +
   geom_rect(data = seg, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = seg$fill, colour = NA) +
   geom_rect(data = bk, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = bk$fill, colour = NA) +
   geom_rect(data = outline, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = NA,
-            colour = outline$col, linewidth = 0.7) +
+            colour = "black", linewidth = 0.3) +
   geom_point(data = bk, aes(x = xmin, y = y, colour = bk), alpha = 0) +          # invisible; drives the colour bar
   geom_label(data = tibble(x = X_S - SNODE_W / 2 - 0.012, y = s_y, lab = ord), aes(x, y, label = lab),
              hjust = 1, size = 2.7, fontface = "bold", fill = scales::alpha("white", 0.85), label.size = 0,
@@ -141,9 +141,9 @@ p <- ggplot() +
   annotate("text", x = X_S + SNODE_W / 2 + BK_W / 2, y = max(s_y) + S_H / 2 + 0.015, label = "BK", size = 2.3) +
   annotate("text", x = c(X_G, X_S, X_M), y = 1.06, label = c("Genus", "Sample", "miRNA"), fontface = "bold", size = 3.6) +
   annotate("text", x = X_S, y = max(s_y[!is_case]) + 0.075, label = "Control",
-           colour = grp_col[["control"]], size = 3.2, fontface = "bold") +
+           colour = "black", size = 3.2, fontface = "bold") +
   annotate("text", x = X_S, y = max(s_y[is_case]) + 0.075, label = "DNAemia",
-           colour = grp_col[["DNAemia"]], size = 3.2, fontface = "bold") +
+           colour = "black", size = 3.2, fontface = "bold") +
   # scale bars
   annotate("rect", xmin = 0.25, xmax = 0.29, ymin = -0.06, ymax = -0.06 + 25 * L_SCALE, fill = "grey40") +
   annotate("text", x = 0.31, y = -0.06 + 25 * L_SCALE / 2, label = "25% of bacteria", hjust = 0, size = 2.7) +
@@ -174,7 +174,7 @@ writeLines(c(
   "| `sankey_mirnas.tsv` | miRNAs shown: the 8 human miRNAs with the smallest DESeq2 p in Fig 1A, plus bkv-miR-B1-5p and bkv-miR-B1-3p (= jcv-miR-J1-3p). |", "",
   "Left ribbon width: genus relative abundance within Bacteria in that sample (%), after the mean relative abundance > 0.1% filter; genera reaching >= 10% in at least one sample are shown (colours grouped by phylum), the rest pooled as Other. Each sample sums to 100%.",
   sprintf("Right ribbon width: |log2(DESeq2-normalised count + 1) - mean of the controls| for that sample; only values >= %.1f are drawn. Colour: above or below the control mean; viral miRNA in purple.", MIN_DELTA),
-  "The two sides use independent scales (see scale bars). Each sample is drawn as a stacked bar of its genus composition (outline = group colour); the grey strip next to it shows urinary BKPyV DNA from the metagenome (log10 read pairs per million; colour bar).",
+  "The two sides use independent scales (see scale bars). Each sample is drawn as a stacked bar of its genus composition; the grey strip next to it shows urinary BKPyV DNA from the metagenome (log10 read pairs per million; colour bar).",
   paste0("Genus colours by phylum (blue Pseudomonadota, orange Bacillota (Firmicutes), green Actinomycetota, purple Bacteroidota, red Mycoplasmatota): ", phylum_note, ".")
 ), file.path(out, "README.md"))
 writeLines(capture.output(sessionInfo()), file.path(out, "sessionInfo.txt"))
