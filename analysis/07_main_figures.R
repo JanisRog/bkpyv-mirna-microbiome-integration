@@ -36,6 +36,7 @@ writeLines(c(
   "| File | Contents |", "|---|---|",
   "| `Figure1.pdf/.png` | Independent analyses. A: small-RNA yield in all samples (human miRNA reads; reads on annotated RNA with the ERCC criterion-1 line). B: volcano, DNAemia vs control (miRNA analysis set, ERCC criterion 1). C: alpha diversity and D: Aitchison PCA (all samples passing metagenome QC). |",
   "| `Figure2.pdf/.png` | Integration in the paired samples. A: Spearman correlations, nominally DE miRNAs + viral vs genera and urinary BKPyV DNA. B: descriptive Sankey genus -> sample -> miRNA. |", "",
-  "Colours: control blue, DNAemia red."
+  "Colours: control blue, DNAemia red.", "",
+  "`FIGURE_LEGENDS_draft.md` (hand-written, not generated): draft legends for Figures 1 and 2 with all definitions; numbers must be updated if analyses are rerun."
 ), file.path(out, "README.md"))
 writeLines(capture.output(sessionInfo()), file.path(out, "sessionInfo.txt"))
