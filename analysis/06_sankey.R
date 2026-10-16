@@ -13,7 +13,7 @@
 # Concept follows the descriptive Sankey of the first submission, simplified (genus level, fewer elements).
 #
 # Usage: Rscript 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_species_est_reads.tsv>
-suppressPackageStartupMessages({ library(readr); library(dplyr); library(tidyr); library(ggplot2) })
+suppressPackageStartupMessages({ library(readr); library(dplyr); library(tidyr); library(ggplot2); library(patchwork) })
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 5) stop("usage: 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_est_reads.tsv>")
@@ -150,14 +150,52 @@ p <- ggplot() +
                                "Viral miRNA, above control mean", "Viral miRNA, below control mean"), name = NULL) +
   scale_colour_gradient(low = "grey90", high = "black", name = expression(atop("Urinary BKPyV DNA", "(log"[10]*" pairs per million)"))) +
   coord_cartesian(xlim = c(-0.45, 2.85), ylim = c(-0.08, 1.07), clip = "off") +
-  guides(fill = guide_legend(ncol = 1, order = 1, override.aes = list(alpha = 0.8)),
-         colour = guide_colourbar(order = 2, barheight = 5, barwidth = 0.6, title.position = "top")) +
-  theme_void(base_size = 10) + theme(legend.position = "right", legend.box = "vertical", legend.justification = "center",
-                                     legend.spacing.y = unit(0.6, "cm"), plot.margin = margin(10, 10, 5, 10),
+  theme_void(base_size = 10) + theme(legend.position = "none", plot.margin = margin(10, 10, 5, 10),
                                      plot.background = element_rect(fill = "white", colour = NA))
-saveRDS(p, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
-ggsave(file.path(out, "Fig2_sankey.pdf"), p, width = 11, height = 6.5, bg = "white")
-ggsave(file.path(out, "Fig2_sankey.png"), p, width = 11, height = 6.5, dpi = 300, bg = "white")
+
+# ---- custom legend panel below the Sankey (one row) -------------------------------------------------
+# 1) mini illustration: ribbons into a stacked bar + brace "Relative abundance of bacterial genera"
+# 2) BKPyV DNA colour bar (same palette and range as the strips)   3) miRNA ribbon colours
+ex_h <- c(0.14, 0.08, 0.18, 0.12, 0.28); ex_col <- unname(gcol[head(top, length(ex_h))])
+ex_top <- 0.92 - cumsum(c(0, head(ex_h, -1) + 0.012)); ex_bar_top <- 0.92 - cumsum(c(0, head(ex_h, -1)))
+ex <- bind_rows(lapply(seq_along(ex_h), function(i)
+  ribbon(3.0, 3.9, ex_top[i], ex_top[i] - ex_h[i], ex_bar_top[i], ex_bar_top[i] - ex_h[i], i) |> mutate(col = ex_col[i])))
+ex_bar <- tibble(ymax = ex_bar_top, ymin = ex_bar_top - ex_h, col = ex_col)
+brace <- function(x, y0, y1, d = 0.07) {                      # curly brace, cusp pointing left
+  r <- min(0.08, (y1 - y0) / 6); ym <- (y0 + y1) / 2
+  arc <- function(cx, cy, a0, a1) { t <- seq(a0, a1, length.out = 15); tibble(x = cx + d * cos(t), y = cy + r * sin(t)) }
+  bind_rows(arc(x + d, y1 - r, pi / 2, pi),          # top end -> vertical
+            arc(x - d, ym + r, 0, -pi / 2),          # down into the cusp
+            arc(x - d, ym - r, pi / 2, 0),           # out of the cusp
+            arc(x + d, y0 + r, pi, 3 * pi / 2))      # vertical -> bottom end
+}
+br <- brace(2.85, min(ex_bar$ymin), max(ex_top))
+cb_v <- seq(min(bk$bk), max(bk$bk), length.out = 60)
+cb <- tibble(v = cb_v, ymin = 0.1 + 0.8 * (seq_along(cb_v) - 1) / 60, ymax = 0.1 + 0.8 * seq_along(cb_v) / 60,
+             fill = bk_pal(scales::rescale(cb_v)))
+cb_ticks <- tibble(v = intersect(2:6, floor(min(cb_v)):ceiling(max(cb_v)))) |> filter(v >= min(cb_v), v <= max(cb_v)) |>
+  mutate(y = 0.1 + 0.8 * (v - min(cb_v)) / diff(range(cb_v)))
+keys <- tibble(lab = c("Human miRNA, above control mean", "Human miRNA, below control mean",
+                       "Viral miRNA, above control mean", "Viral miRNA, below control mean"),
+               col = scales::alpha(unname(dcol), 0.8), y = c(0.84, 0.62, 0.40, 0.18))
+leg <- ggplot() +
+  geom_polygon(data = ex, aes(x, y, group = id), fill = scales::alpha(ex$col, 0.55), colour = NA) +
+  geom_rect(data = ex_bar, aes(xmin = 3.9, xmax = 3.97, ymin = ymin, ymax = ymax), fill = scales::alpha(ex_bar$col, 0.55)) +
+  geom_path(data = br, aes(x, y), linewidth = 0.5) +
+  annotate("text", x = 2.68, y = 0.5, label = "Relative abundance of\nbacterial genera", hjust = 1, size = 3.2, lineheight = 0.95) +
+  geom_rect(data = cb, aes(xmin = 5.0, xmax = 5.18, ymin = ymin, ymax = ymax), fill = cb$fill) +
+  geom_segment(data = cb_ticks, aes(x = 5.18, xend = 5.23, y = y, yend = y), linewidth = 0.3) +
+  geom_text(data = cb_ticks, aes(x = 5.27, y = y, label = v), hjust = 0, size = 3) +
+  annotate("text", x = 5.09, y = 1.13, label = "Urinary BKPyV DNA", size = 3) +
+  annotate("text", x = 5.09, y = 1.0, label = "(log[10]~pairs~per~million)", parse = TRUE, size = 3) +
+  geom_rect(data = keys, aes(xmin = 6.1, xmax = 6.38, ymin = y - 0.085, ymax = y + 0.085), fill = keys$col) +
+  geom_text(data = keys, aes(x = 6.48, y = y, label = lab), hjust = 0, size = 3.2) +
+  coord_cartesian(xlim = c(0, 11), ylim = c(0, 1.2), expand = FALSE, clip = "off") +
+  theme_void() + theme(plot.background = element_rect(fill = "white", colour = NA))
+p_full <- p / leg + plot_layout(heights = c(1, 0.22))
+saveRDS(p_full, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
+ggsave(file.path(out, "Fig2_sankey.pdf"), p_full, width = 12, height = 8, bg = "white")
+ggsave(file.path(out, "Fig2_sankey.png"), p_full, width = 12, height = 8, dpi = 300, bg = "white")
 
 write_tsv(links, file.path(out, "sankey_links.tsv"))
 write_tsv(tibble(miRNA = mir, rank_by_p = match(mir, de$miRNA), log2FC = de$log2FC[match(mir, de$miRNA)],
