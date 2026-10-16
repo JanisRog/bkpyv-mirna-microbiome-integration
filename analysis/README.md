@@ -8,6 +8,7 @@ Statistics and figures, run on the tables from `pipeline/03_collect_qc.py`. Ever
 | `01_mirna_yield.R` | Small-RNA library yield by group in all samples (Wilcoxon, Fisher); supplementary yield figure |
 | `02_mirna_de.R` | Differential miRNA expression (DESeq2 + edgeR QL; viral miRNAs as separate family); Fig 1A volcano. Sets: `primary` (ERCC criterion 1) and `sensitivity` (>=10k human miRNA counts) |
 | `03_compare_nog2024.py` | Looks up the 29 miRNAs reported by Nog et al. 2024 in our DE results |
+| `04_mir200_shedding.R` | Pre-specified check: miR-200 family vs % human DNA and urinary BKPyV DNA; cell-origin miRNA profile |
 
 Scripts for Fig 1B (microbiome) and Fig 2 (Sankey) will be added.
 
