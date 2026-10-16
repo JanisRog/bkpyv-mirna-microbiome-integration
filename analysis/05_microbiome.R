@@ -182,6 +182,7 @@ pC <- ggplot(pcs, aes(PC1, PC2, colour = group)) + geom_point(size = 2.3) +
        subtitle = bquote("Aitchison; PERMANOVA" ~ R^2 == .(sprintf("%.2f", perm$R2[1])) * "," ~ italic(p) == .(sprintf("%.2g", perm$`Pr(>F)`[1])))) +
   theme_bw(base_size = 10) + theme(legend.position = "bottom")
 fig <- pA / wrap_plots(pB, pC, widths = c(1.25, 1)) + plot_layout(heights = c(1.1, 1)) + plot_annotation(tag_levels = "i")
+saveRDS(list(bars = pA, alpha = pB, pca = pC), file.path(out, "fig_panels.rds"))   # used by 07_main_figures.R
 ggsave(file.path(out, "Fig1B_microbiome.pdf"), fig, width = 9, height = 8)
 ggsave(file.path(out, "Fig1B_microbiome.png"), fig, width = 9, height = 8, dpi = 300)
 
@@ -200,7 +201,8 @@ writeLines(c(
   "| `differential_abundance_aldex2.tsv` | ALDEx2 per genus and species: `diff_btw` (median CLR difference, DNAemia - control; positive = higher in DNAemia), `effect` (ALDEx2 standardised effect size), Wilcoxon and Welch expected p and BH q (`q_wilcoxon` used for `significant`). |",
   "| `genus_relative_abundance.tsv`, `species_relative_abundance.tsv` | Relative abundance within Bacteria after filtering (fractions). |",
   "| `polyomavirus_dna.tsv`, `polyomavirus_tests.tsv` | Urinary BKPyV and JCPyV DNA, read pairs per million QC pairs; Wilcoxon by group. |",
-  "| `Fig1B_microbiome.pdf/.png` | (i) genus composition per sample, (ii) alpha diversity, (iii) Aitchison PCA. |", "",
+  "| `Fig1B_microbiome.pdf/.png` | (i) genus composition per sample, (ii) alpha diversity, (iii) Aitchison PCA. |",
+  "| `fig_panels.rds` | The three ggplot panels, used by `analysis/07_main_figures.R`. |", "",
   "Counts are MetaPhlAn 4 estimated reads per species (rel_ab_w_read_stats). Richness in low-biomass urine depends on bacterial read depth; see the depth correlation in the summary."
 ), file.path(out, "README.md"))
 writeLines(capture.output(sessionInfo()), file.path(out, "sessionInfo.txt"))

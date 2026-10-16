@@ -156,6 +156,7 @@ v <- ggplot(pd, aes(log2FC, -log10(p))) +
                          sum(cd$group == "DNAemia"), sum(cd$group == "control"), nrow(hum), sum(hum$sig_deseq2))) +
   theme_bw(base_size = 11) +
   theme(legend.position = "top", panel.grid.minor = element_blank(), plot.caption = element_text(size = 8))
+saveRDS(v, file.path(out, "Fig1A_volcano.rds"))   # panel object for analysis/07_main_figures.R
 ggsave(file.path(out, "Fig1A_volcano.pdf"), v, width = 6.5, height = 5.8)
 ggsave(file.path(out, "Fig1A_volcano.png"), v, width = 6.5, height = 5.8, dpi = 300)
 
@@ -171,6 +172,7 @@ writeLines(c(
   "| `de_viral_mirna.tsv` | Viral miRNAs, tested as a separate family. |",
   "| `samples_used.tsv` | Samples, group, DESeq2 size factor, human miRNA counts. |",
   "| `normalized_counts_deseq2.tsv` | DESeq2-normalised counts (size factors from human miRNAs). |",
+  "| `Fig1A_volcano.rds` | ggplot object of the volcano, used by `analysis/07_main_figures.R`. |",
   "| `Fig1A_volcano.pdf/.png` | Volcano plot. Dark red/blue = FDR q < 0.05; light red/blue = nominal p < 0.05 only (labelled); triangles = viral miRNAs (BKPyV, JCPyV only; adjusted as a separate family). |", "",
   "## Columns of de_human_mirna.tsv / de_viral_mirna.tsv", "",
   "| Column | Meaning |", "|---|---|",
