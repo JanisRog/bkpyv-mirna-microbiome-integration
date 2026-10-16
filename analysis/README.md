@@ -9,8 +9,9 @@ Statistics and figures, run on the tables from `pipeline/03_collect_qc.py`. Ever
 | `02_mirna_de.R` | Differential miRNA expression (DESeq2 + edgeR QL; viral miRNAs as separate family); Fig 1A volcano. Sets: `primary` (ERCC criterion 1) and `sensitivity` (>=10k human miRNA counts) |
 | `03_compare_nog2024.py` | Looks up the 29 miRNAs reported by Nog et al. 2024 in our DE results |
 | `04_mir200_shedding.R` | Pre-specified check: miR-200 family vs % human DNA and urinary BKPyV DNA; cell-origin miRNA profile |
+| `05_microbiome.R` | Bacterial microbiome (MetaPhlAn 4): mean-RA > 0.1% filter, optional cross-talk filter, alpha (raw + rarefied), Aitchison PERMANOVA, ALDEx2; urinary BK/JC DNA; Fig 1B. Runs: primary, `0.01` cross-talk sensitivity, `0 S18` without the UTI control |
 
-Scripts for Fig 1B (microbiome) and Fig 2 (Sankey) will be added.
+The script for Fig 2 (Sankey) will be added.
 
 ## Running
 
@@ -26,5 +27,4 @@ done
 
 ## Environment
 
-R 4.5.1 (macOS arm64). Packages: DESeq2 1.50.2, edgeR 4.8.2, limma 3.66.0, apeglm 1.32.0, ANCOMBC 2.12.1,
-vegan 2.7.6, ggplot2, ggrepel 0.9.8, ggalluvial 0.12.6, patchwork 1.3.2, scales 1.4.0, readr, dplyr, tidyr.
+R 4.5.1 (macOS arm64). Packages: DESeq2 1.50.2, edgeR 4.8.2, limma 3.66.0, apeglm 1.32.0, vegan 2.7.6, ALDEx2 1.42.0, ggplot2, ggrepel 0.9.8, ggalluvial 0.12.6, patchwork 1.3.2, scales 1.4.0, readr, dplyr, tidyr.
