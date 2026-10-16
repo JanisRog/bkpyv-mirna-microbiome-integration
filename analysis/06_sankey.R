@@ -230,7 +230,9 @@ writeLines(c(
   "| `sankey_links.tsv` | Every ribbon: `side` (genus or miRNA), `source`, `target`, `value` (width), `signed_delta` (miRNA side), `fill`. |",
   "| `sankey_mirnas.tsv` | miRNAs shown: all human miRNAs with nominal DESeq2 p < 0.05 (as in the volcano and Fig 2A), plus bkv-miR-B1-5p and bkv-miR-B1-3p (= jcv-miR-J1-3p). |", "",
   "Left ribbon width: genus relative abundance within Bacteria in that sample (%), after the mean relative abundance > 0.1% filter; genera reaching >= 10% in at least one sample are shown (colours grouped by phylum), the rest pooled as Other. Each sample sums to 100%.",
-  sprintf("Right ribbon width: |log2(DESeq2-normalised count + 1) - mean of the controls| for that sample; only values >= %.1f are drawn. Colour: above or below the control mean; viral miRNA in purple.", MIN_DELTA),
+  sprintf("Right ribbon width: |log2(DESeq2-normalised count + 1) - mean of the controls| for that sample; only values >= %.1f (2-fold) are drawn. Colour: human miRNA red (above control mean) / blue (below); BKPyV miRNA purple (above) / pink (below).", MIN_DELTA),
+  "Sample IDs and the group labels use the Figure 1 group colours (control blue #4C78A8, DNAemia red #E45756).",
+  if (!is.na(legend_png)) sprintf("Legend row: author-designed image `%s` (analysis/assets), positioned so its BKPyV colour bar sits under the BK strips (computed from the plot geometry).", basename(legend_png)) else "Legend row: drawn by the script.",
   "The two sides use independent scales (see scale bars). Each sample is drawn as a stacked bar of its genus composition; the grey strip next to it shows urinary BKPyV DNA from the metagenome (log10 read pairs per million; colour bar).",
   paste0("Genus colours by phylum (blue Pseudomonadota, orange Bacillota (Firmicutes), green Actinomycetota, purple Bacteroidota, red Mycoplasmatota): ", phylum_note, ".")
 ), file.path(out, "README.md"))
