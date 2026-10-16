@@ -46,6 +46,8 @@ g <- rbind(g[top, , drop = FALSE], Other = colSums(g[setdiff(rownames(g), top), 
 
 # ---- geometry --------------------------------------------------------------------------------
 X_G <- 0; X_S <- 1; X_M <- 2; NODE_W <- 0.035; SNODE_W <- 0.08; BK_W <- 0.03   # sample bar and BK strip widths
+X_LIM <- c(-0.40, 2.62)            # tight: the Sankey fills the figure width (labels just fit)
+CANVAS_W <- 12; MARGIN_PT <- 10    # inches; left/right plot margin in pt
 ns <- length(ord)
 is_case <- qc$group[match(ord, qc$sample_id)] == "DNAemia"
 s_y <- setNames(seq(0.93, 0.04, length.out = ns), ord); s_y[is_case] <- s_y[is_case] - 0.05
@@ -61,8 +63,10 @@ stack <- function(h, top = 0.97, bottom = 0.03) {          # centred, evenly gap
   gap <- (top - bottom - sum(h)) / max(length(h) - 1, 1)
   y <- top - cumsum(c(0, head(h, -1) + gap)) - h / 2; setNames(y, names(h))
 }
-g_h <- rowSums(g) * L_SCALE; g_y <- stack(g_h)
-m_h <- rowSums(w) * R_SCALE; m_y <- stack(m_h, top = 0.95, bottom = 0.05)
+# genus and miRNA columns span exactly the sample column (top of S18 .. bottom of S25)
+S_TOP <- max(s_y) + 100 * L_SCALE / 2; S_BOT <- min(s_y) - 100 * L_SCALE / 2
+g_h <- rowSums(g) * L_SCALE; g_y <- stack(g_h, top = S_TOP, bottom = S_BOT)
+m_h <- rowSums(w) * R_SCALE; m_y <- stack(m_h, top = S_TOP, bottom = S_BOT)
 
 ribbon <- function(x0, x1, y0a, y0b, y1a, y1b, id) {      # smooth band between two vertical segments
   t <- seq(0, 1, length.out = 40); s <- 3 * t^2 - 2 * t^3; x <- x0 + (x1 - x0) * t
@@ -152,8 +156,8 @@ p <- ggplot() +
                     labels = c("Human miRNA, above control mean", "Human miRNA, below control mean",
                                "Viral miRNA, above control mean", "Viral miRNA, below control mean"), name = NULL) +
   scale_colour_gradient(low = "grey90", high = "black", name = expression(atop("Urinary BKPyV DNA", "(log"[10]*" pairs per million)"))) +
-  coord_cartesian(xlim = c(-0.45, 2.85), ylim = c(-0.08, 1.07), clip = "off") +
-  theme_void(base_size = 10) + theme(legend.position = "none", plot.margin = margin(10, 10, 5, 10),
+  coord_cartesian(xlim = X_LIM, ylim = c(-0.08, 1.07), expand = FALSE, clip = "off") +
+  theme_void(base_size = 10) + theme(legend.position = "none", plot.margin = margin(10, MARGIN_PT, 5, MARGIN_PT),
                                      plot.background = element_rect(fill = "white", colour = NA))
 
 # ---- custom legend panel below the Sankey (one row) -------------------------------------------------
@@ -198,13 +202,19 @@ leg <- ggplot() +
 if (!is.na(legend_png)) {                                       # author-designed legend image replaces the drawn one
   img <- png::readPNG(legend_png)
   # smaller and centred under the plot body (genus..miRNA columns), not the full canvas; aspect kept
-  leg <- wrap_elements(full = grid::rasterGrob(img, interpolate = TRUE, height = unit(0.88, "npc"),
-                                               x = unit(0.4344, "npc"), y = unit(0.6, "npc")))   # x: BK colour bar aligned with the BK strips (measured)
+  # place the legend so its BK colour bar sits under the BK strips:
+  #   CB_FRAC = centre of the colour bar within the legend image (measured on assets/sankey_legend.png)
+  #   LEG_W   = legend width as a fraction of the canvas; bk_npc = BK strip centre as a fraction of the canvas
+  CB_FRAC <- 0.558; LEG_W <- 0.43
+  m <- MARGIN_PT / 72 / CANVAS_W
+  bk_npc <- m + (X_S + SNODE_W / 2 + BK_W / 2 - X_LIM[1]) / diff(X_LIM) * (1 - 2 * m)
+  leg <- wrap_elements(full = grid::rasterGrob(img, interpolate = TRUE, width = unit(LEG_W, "npc"),
+                                               x = unit(bk_npc - (CB_FRAC - 0.5) * LEG_W, "npc"), y = unit(0.6, "npc")))
 }
 p_full <- p / leg + plot_layout(heights = c(1, if (is.na(legend_png)) 0.22 else 0.2))
 saveRDS(p_full, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
-ggsave(file.path(out, "Fig2_sankey.pdf"), p_full, width = 12, height = 8, bg = "white")
-ggsave(file.path(out, "Fig2_sankey.png"), p_full, width = 12, height = 8, dpi = 300, bg = "white")
+ggsave(file.path(out, "Fig2_sankey.pdf"), p_full, width = CANVAS_W, height = 8, bg = "white")
+ggsave(file.path(out, "Fig2_sankey.png"), p_full, width = CANVAS_W, height = 8, dpi = 300, bg = "white")
 
 write_tsv(links, file.path(out, "sankey_links.tsv"))
 write_tsv(tibble(miRNA = mir, rank_by_p = match(mir, de$miRNA), log2FC = de$log2FC[match(mir, de$miRNA)],
