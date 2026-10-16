@@ -199,7 +199,7 @@ if (!is.na(legend_png)) {                                       # author-designe
   img <- png::readPNG(legend_png)
   # smaller and centred under the plot body (genus..miRNA columns), not the full canvas; aspect kept
   leg <- wrap_elements(full = grid::rasterGrob(img, interpolate = TRUE, height = unit(0.88, "npc"),
-                                               x = unit(0.46, "npc"), y = unit(0.6, "npc")))
+                                               x = unit(0.4344, "npc"), y = unit(0.6, "npc")))   # x: BK colour bar aligned with the BK strips (measured)
 }
 p_full <- p / leg + plot_layout(heights = c(1, if (is.na(legend_png)) 0.22 else 0.2))
 saveRDS(p_full, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
