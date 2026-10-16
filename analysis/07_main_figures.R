@@ -17,9 +17,9 @@ out <- args[6]; dir.create(out, showWarnings = FALSE, recursive = TRUE)
 yl  <- readRDS(file.path(args[1], "Fig1A_yield.rds"))
 vol <- readRDS(file.path(args[2], "Fig1A_volcano.rds"))
 mb  <- readRDS(file.path(args[3], "fig_panels.rds"))
-# top row: narrow yield panel, wide volcano with its legend on the right; bottom row: alpha | PCA
-vol_r <- vol + theme(legend.position = "right") +
-  guides(colour = guide_legend(ncol = 1), shape = guide_legend(ncol = 1))
+# top row: narrow yield panel, wide volcano with its legend on top in a single row; bottom row: alpha | PCA
+vol_r <- vol + theme(legend.position = "top", legend.margin = margin(0, 0, 0, 0)) +
+  guides(colour = guide_legend(nrow = 1), shape = guide_legend(nrow = 1))
 top <- wrap_elements(full = yl) | wrap_elements(full = vol_r)
 bot <- wrap_elements(full = mb$alpha) | wrap_elements(full = mb$pca + theme(legend.position = "bottom"))
 f1 <- (top + plot_layout(widths = c(0.62, 1.38))) / (bot + plot_layout(widths = c(1, 1.15))) +
