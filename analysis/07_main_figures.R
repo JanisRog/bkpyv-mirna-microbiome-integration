@@ -22,10 +22,19 @@ vol_r <- vol + theme(legend.position = "top", legend.margin = margin(0, 0, 0, 0)
   guides(colour = guide_legend(nrow = 1), shape = guide_legend(nrow = 1))
 top <- wrap_elements(full = yl) | wrap_elements(full = vol_r)
 bot <- wrap_elements(full = mb$alpha) | wrap_elements(full = mb$pca + theme(legend.position = "bottom"))
-f1 <- (top + plot_layout(widths = c(0.62, 1.38))) / (bot + plot_layout(widths = c(1, 1.15))) +
-  plot_annotation(tag_levels = "A")
-ggsave(file.path(out, "Figure1.pdf"), f1, width = 12, height = 10, bg = "white")
-ggsave(file.path(out, "Figure1.png"), f1, width = 12, height = 10, dpi = 300, bg = "white")
+# section headings and a separator line between the miRNA (top) and microbiome (bottom) rows
+heading <- function(txt) ggplot() + annotate("text", x = 0, y = 0.5, label = txt, hjust = 0, size = 5.2, fontface = "bold") +
+  scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+  theme_void() + theme(plot.margin = margin(0, 5, 0, 5))
+separator <- ggplot() + annotate("segment", x = 0, xend = 1, y = 0.5, yend = 0.5, colour = "grey55", linewidth = 0.6) +
+  scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+  theme_void()
+f1 <- heading("miRNA analysis") / (top + plot_layout(widths = c(0.62, 1.38))) / separator /
+  heading("Microbiome analysis") / (bot + plot_layout(widths = c(1, 1.15))) +
+  plot_layout(heights = c(0.05, 1, 0.04, 0.05, 1)) +
+  plot_annotation(tag_levels = list(c("", "A", "B", "", "", "C", "D")))   # headings/separator untagged
+ggsave(file.path(out, "Figure1.pdf"), f1, width = 12, height = 10.8, bg = "white")
+ggsave(file.path(out, "Figure1.png"), f1, width = 12, height = 10.8, dpi = 300, bg = "white")
 
 hm <- readRDS(file.path(args[4], "Fig2A_heatmap.rds"))
 sk <- readRDS(file.path(args[5], "Fig2_sankey.rds"))
