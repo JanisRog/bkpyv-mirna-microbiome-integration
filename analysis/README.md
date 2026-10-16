@@ -12,6 +12,7 @@ Statistics and figures, run on the tables from `pipeline/03_collect_qc.py`. Ever
 | `05_microbiome.R` | Bacterial microbiome (MetaPhlAn 4): mean-RA > 0.1% filter, optional cross-talk filter, alpha (raw + rarefied), Aitchison PERMANOVA, ALDEx2; urinary BK/JC DNA; Fig 1B. Runs: all 22 (supplement), `0.01` cross-talk sensitivity, `0 S18` without the UTI control, and the 11 paired samples (input for Figure 2) |
 | `06_sankey.R` | Figure 2: descriptive Sankey genus -> sample -> miRNA (paired samples; no tests). Args: genus table, DE dir, QC table, out dir, MetaPhlAn est-reads table (for phylum colours), optional legend image (`assets/sankey_legend.png`, author-designed) |
 | `07_main_figures.R` | Assembles Figure 1 (2x2: A yield, all 22; B volcano, n=11; C alpha, D PCA, all 22) and Figure 2 (A heatmap; B Sankey) from saved panels |
+| `09_supp_figures.R` | Supplementary Figures S1 (sensitivity volcano), S2 (microbiome sensitivity analyses), S3 (miR-200 check) |
 | `08_heatmap.R` | Figure 2A: Spearman correlations, nominal DE miRNAs + viral vs genera (prevalence >= 3/11) and urinary BKPyV DNA; BH-FDR |
 
 
