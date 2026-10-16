@@ -138,7 +138,7 @@ p <- ggplot() +
   annotate("text", x = c(X_G, X_S, X_M), y = 1.06, label = c("Genus", "Sample", "miRNA"), fontface = "bold", size = 3.6) +
   annotate("text", x = X_S, y = max(s_y[!is_case]) + 0.075, label = "Control",
            colour = "black", size = 3.2, fontface = "bold") +
-  annotate("text", x = X_S, y = max(s_y[is_case]) + 0.075, label = "DNAemia",
+  annotate("text", x = X_S, y = max(s_y[is_case]) + 0.055, label = "DNAemia",
            colour = "black", size = 3.2, fontface = "bold") +
   # scale bars
   annotate("rect", xmin = 0.25, xmax = 0.29, ymin = -0.06, ymax = -0.06 + 25 * L_SCALE, fill = "grey40") +
