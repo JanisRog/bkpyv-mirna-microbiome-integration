@@ -20,10 +20,12 @@ mb  <- readRDS(file.path(args[3], "fig_panels.rds"))
 # top row: narrow yield panel, wide volcano with its legend on top in a single row; bottom row: alpha | PCA
 vol_r <- vol + theme(legend.position = "top", legend.margin = margin(0, 0, 0, 0)) +
   guides(colour = guide_legend(nrow = 1), shape = guide_legend(nrow = 1))
-top <- wrap_elements(full = yl) | wrap_elements(full = vol_r)
-bot <- wrap_elements(full = mb$alpha) | wrap_elements(full = mb$pca + theme(legend.position = "bottom"))
+# extra top/left margin inside each panel = space between the A-D tag and the plot
+tagspace <- theme(plot.margin = margin(t = 16, r = 6, b = 6, l = 20))
+top <- wrap_elements(full = yl + tagspace) | wrap_elements(full = vol_r + tagspace)
+bot <- wrap_elements(full = mb$alpha + tagspace) | wrap_elements(full = mb$pca + theme(legend.position = "bottom") + tagspace)
 # section headings and a separator line between the miRNA (top) and microbiome (bottom) rows
-heading <- function(txt) ggplot() + annotate("text", x = 0, y = 0.5, label = txt, hjust = 0, size = 5.2, fontface = "bold") +
+heading <- function(txt) ggplot() + annotate("text", x = 0, y = 0.75, label = txt, hjust = 0, size = 5.2, fontface = "bold") +   # text high in its row = gap below
   scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
   theme_void() + theme(plot.margin = margin(0, 5, 0, 5))
 separator <- ggplot() + annotate("segment", x = 0, xend = 1, y = 0.5, yend = 0.5, colour = "grey55", linewidth = 0.6) +
@@ -31,10 +33,10 @@ separator <- ggplot() + annotate("segment", x = 0, xend = 1, y = 0.5, yend = 0.5
   theme_void()
 f1 <- heading("miRNA analysis") / (top + plot_layout(widths = c(0.62, 1.38))) / separator /
   heading("Microbiome analysis") / (bot + plot_layout(widths = c(1, 1.15))) +
-  plot_layout(heights = c(0.05, 1, 0.04, 0.05, 1)) +
+  plot_layout(heights = c(0.08, 1, 0.05, 0.08, 1)) +
   plot_annotation(tag_levels = list(c("", "A", "B", "", "", "C", "D")))   # headings/separator untagged
-ggsave(file.path(out, "Figure1.pdf"), f1, width = 12, height = 10.8, bg = "white")
-ggsave(file.path(out, "Figure1.png"), f1, width = 12, height = 10.8, dpi = 300, bg = "white")
+ggsave(file.path(out, "Figure1.pdf"), f1, width = 12, height = 11.4, bg = "white")
+ggsave(file.path(out, "Figure1.png"), f1, width = 12, height = 11.4, dpi = 300, bg = "white")
 
 hm <- readRDS(file.path(args[4], "Fig2A_heatmap.rds"))
 sk <- readRDS(file.path(args[5], "Fig2_sankey.rds"))
