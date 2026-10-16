@@ -22,8 +22,9 @@ vol_r <- vol + theme(legend.position = "top", legend.margin = margin(0, 0, 0, 0)
   guides(colour = guide_legend(nrow = 1), shape = guide_legend(nrow = 1))
 # extra top/left margin inside each panel = space between the A-D tag and the plot
 tagspace <- theme(plot.margin = margin(t = 16, r = 6, b = 6, l = 20))
-top <- wrap_elements(full = yl + tagspace) | wrap_elements(full = vol_r + tagspace)
-bot <- wrap_elements(full = mb$alpha + tagspace) | wrap_elements(full = mb$pca + theme(legend.position = "bottom") + tagspace)
+leftcol  <- theme(plot.margin = margin(t = 16, r = 30, b = 6, l = 20))   # wider right margin = gap to B / D
+top <- wrap_elements(full = yl + leftcol) | wrap_elements(full = vol_r + tagspace)
+bot <- wrap_elements(full = mb$alpha + leftcol) | wrap_elements(full = mb$pca + theme(legend.position = "bottom") + tagspace)
 # section headings and a separator line between the miRNA (top) and microbiome (bottom) rows
 heading <- function(txt) ggplot() + annotate("text", x = 0, y = 0.75, label = txt, hjust = 0, size = 5.2, fontface = "bold") +   # text high in its row = gap below
   scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
