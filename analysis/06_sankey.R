@@ -46,7 +46,7 @@ g <- rbind(g[top, , drop = FALSE], Other = colSums(g[setdiff(rownames(g), top), 
 
 # ---- geometry --------------------------------------------------------------------------------
 X_G <- 0; X_S <- 1; X_M <- 2; NODE_W <- 0.035; SNODE_W <- 0.08; BK_W <- 0.03   # sample bar and BK strip widths
-X_LIM <- c(-0.40, 2.62)            # tight: the Sankey fills the figure width (labels just fit)
+X_LIM <- c(-0.40, 2.34)            # tight: the Sankey fills the figure width (labels just fit; shared 3p label on two lines)
 CANVAS_W <- 12; MARGIN_PT <- 10    # inches; left/right plot margin in pt
 ns <- length(ord)
 is_case <- qc$group[match(ord, qc$sample_id)] == "DNAemia"
@@ -127,14 +127,14 @@ bk_pal <- scales::seq_gradient_pal("grey90", "black")
 bk <- bk |> mutate(fill = bk_pal(scales::rescale(bk, from = range(bk))),
                    xmin = X_S + SNODE_W / 2, xmax = X_S + SNODE_W / 2 + BK_W, ymin = y - S_H / 2, ymax = y + S_H / 2)
 lab_g <- tibble(x = X_G - NODE_W, y = g_y, lab = names(g_y), it = names(g_y) != "Other")
-lab_m <- tibble(x = X_M + NODE_W, y = m_y, lab = ifelse(mir == "bkv-miR-B1-3p", "bkv-miR-B1-3p / jcv-miR-J1-3p", sub("^hsa-", "", mir)))
+lab_m <- tibble(x = X_M + NODE_W, y = m_y, lab = ifelse(mir == "bkv-miR-B1-3p", "bkv-miR-B1-3p /\njcv-miR-J1-3p", sub("^hsa-", "", mir)))
 
 p <- ggplot() +
   geom_polygon(data = P, aes(x, y, group = id, fill = fill), alpha = 0.55, colour = NA) +
   geom_rect(data = nodes |> mutate(xmin = x - NODE_W / 2, xmax = x + NODE_W / 2, ymin = y - h / 2, ymax = y + h / 2),
             aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = nodes$fill, colour = NA) +
   geom_text(data = lab_g, aes(x, y, label = lab, fontface = ifelse(it, "italic", "plain")), hjust = 1, size = 3) +
-  geom_text(data = lab_m, aes(x, y, label = lab), hjust = 0, size = 3) +
+  geom_text(data = lab_m, aes(x, y, label = lab), hjust = 0, size = 3, lineheight = 0.9) +
   geom_rect(data = seg, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = seg$fill, colour = NA) +
   geom_rect(data = bk, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = bk$fill, colour = NA) +
   geom_point(data = bk, aes(x = xmin, y = y, colour = bk), alpha = 0) +          # invisible; drives the colour bar
