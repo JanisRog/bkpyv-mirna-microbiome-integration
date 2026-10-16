@@ -12,12 +12,15 @@
 #                 no outline (ribbons run seamlessly into it); grey strip right of it = urinary BKPyV DNA (metagenome)
 # Concept follows the descriptive Sankey of the first submission, simplified (genus level, fewer elements).
 #
-# Usage: Rscript 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_species_est_reads.tsv>
+# Usage: Rscript 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_species_est_reads.tsv> [legend.png]
+#   legend.png (optional): legend image placed below the plot instead of the drawn legend
+#   (the figure uses analysis/assets/sankey_legend.png, designed by the first author)
 suppressPackageStartupMessages({ library(readr); library(dplyr); library(tidyr); library(ggplot2); library(patchwork) })
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 5) stop("usage: 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_est_reads.tsv>")
+if (!length(args) %in% 5:6) stop("usage: 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_est_reads.tsv> [legend.png]")
 gra_f <- args[1]; de_dir <- args[2]; qc_f <- args[3]; out <- args[4]; tax_f <- args[5]
+legend_png <- if (length(args) == 6) args[6] else NA
 dir.create(out, showWarnings = FALSE, recursive = TRUE)
 MIN_GENUS_MAX <- 10; N_MIRNA <- 8; MIN_DELTA <- 1; VIRAL <- c("bkv-miR-B1-5p", "bkv-miR-B1-3p")   # MIN_DELTA 1 = 2-fold
 
@@ -192,7 +195,11 @@ leg <- ggplot() +
   geom_text(data = keys, aes(x = 6.48, y = y, label = lab), hjust = 0, size = 3.2) +
   coord_cartesian(xlim = c(0, 11), ylim = c(0, 1.2), expand = FALSE, clip = "off") +
   theme_void() + theme(plot.background = element_rect(fill = "white", colour = NA))
-p_full <- p / leg + plot_layout(heights = c(1, 0.22))
+if (!is.na(legend_png)) {                                       # author-designed legend image replaces the drawn one
+  img <- png::readPNG(legend_png)
+  leg <- wrap_elements(full = grid::rasterGrob(img, interpolate = TRUE, height = unit(0.92, "npc")))   # aspect kept
+}
+p_full <- p / leg + plot_layout(heights = c(1, if (is.na(legend_png)) 0.22 else 0.26))
 saveRDS(p_full, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
 ggsave(file.path(out, "Fig2_sankey.pdf"), p_full, width = 12, height = 8, bg = "white")
 ggsave(file.path(out, "Fig2_sankey.png"), p_full, width = 12, height = 8, dpi = 300, bg = "white")
