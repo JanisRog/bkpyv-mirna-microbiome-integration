@@ -197,9 +197,11 @@ leg <- ggplot() +
   theme_void() + theme(plot.background = element_rect(fill = "white", colour = NA))
 if (!is.na(legend_png)) {                                       # author-designed legend image replaces the drawn one
   img <- png::readPNG(legend_png)
-  leg <- wrap_elements(full = grid::rasterGrob(img, interpolate = TRUE, height = unit(0.92, "npc")))   # aspect kept
+  # smaller and centred under the plot body (genus..miRNA columns), not the full canvas; aspect kept
+  leg <- wrap_elements(full = grid::rasterGrob(img, interpolate = TRUE, height = unit(0.88, "npc"),
+                                               x = unit(0.46, "npc"), y = unit(0.6, "npc")))
 }
-p_full <- p / leg + plot_layout(heights = c(1, if (is.na(legend_png)) 0.22 else 0.26))
+p_full <- p / leg + plot_layout(heights = c(1, if (is.na(legend_png)) 0.22 else 0.2))
 saveRDS(p_full, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
 ggsave(file.path(out, "Fig2_sankey.pdf"), p_full, width = 12, height = 8, bg = "white")
 ggsave(file.path(out, "Fig2_sankey.png"), p_full, width = 12, height = 8, dpi = 300, bg = "white")
