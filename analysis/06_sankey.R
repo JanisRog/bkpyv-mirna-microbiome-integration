@@ -5,7 +5,8 @@
 #                 genera shown if >= 10% in at least one sample, the rest pooled as Other; colours grouped by phylum
 #   right width : |log2(normalised count + 1) - control mean| for that sample, shown if >= 1 (2-fold)
 #                 colour = above (up) or below (down) the control mean; viral miRNAs in purple
-#   miRNAs      : the 8 human miRNAs with the smallest DESeq2 p (Fig 1A) + bkv-miR-B1-5p and bkv-miR-B1-3p
+#   miRNAs      : all human miRNAs with nominal DESeq2 p < 0.05 (same set as Fig 1 volcano and Fig 2A heatmap)
+#                 + bkv-miR-B1-5p and bkv-miR-B1-3p
 #                 (3p sequence identical to jcv-miR-J1-3p)
 #   node order  : genera and miRNAs ordered by the mean position of their samples (fewer crossings)
 #   middle      : one stacked bar per sample = its genus composition (ribbons flow into their segment),
@@ -22,7 +23,7 @@ if (!length(args) %in% 5:6) stop("usage: 06_sankey.R <genus_relative_abundance.t
 gra_f <- args[1]; de_dir <- args[2]; qc_f <- args[3]; out <- args[4]; tax_f <- args[5]
 legend_png <- if (length(args) == 6) args[6] else NA
 dir.create(out, showWarnings = FALSE, recursive = TRUE)
-MIN_GENUS_MAX <- 10; N_MIRNA <- 8; MIN_DELTA <- 1; VIRAL <- c("bkv-miR-B1-5p", "bkv-miR-B1-3p")   # MIN_DELTA 1 = 2-fold
+MIN_GENUS_MAX <- 10; MIN_DELTA <- 1; VIRAL <- c("bkv-miR-B1-5p", "bkv-miR-B1-3p")   # MIN_DELTA 1 = 2-fold
 
 # ---- inputs ----------------------------------------------------------------------------
 gra <- read_tsv(gra_f, show_col_types = FALSE)
@@ -33,7 +34,7 @@ stopifnot(setequal(qc$sample_id, intersect(names(gra), qc$sample_id)))
 ord <- qc |> arrange(group, as.integer(sub("S", "", sample_id))) |> pull(sample_id)
 
 de  <- read_tsv(file.path(de_dir, "de_human_mirna.tsv"), show_col_types = FALSE) |> arrange(p_deseq2)
-mir <- c(head(de$miRNA[!is.na(de$p_deseq2)], N_MIRNA), VIRAL)
+mir <- c(de$miRNA[de$nominal %in% TRUE], VIRAL)          # nominal = DESeq2 p < 0.05 (02_mirna_de.R)
 norm <- read_tsv(file.path(de_dir, "normalized_counts_deseq2.tsv"), show_col_types = FALSE)
 lg <- as.matrix(log2(norm[match(mir, norm$miRNA), ord] + 1)); rownames(lg) <- mir
 ctrl <- ord[qc$group[match(ord, qc$sample_id)] == "control"]
@@ -226,7 +227,7 @@ writeLines(c(
   "| File | Contents |", "|---|---|",
   "| `Fig2_sankey.pdf/.png` | The figure. |",
   "| `sankey_links.tsv` | Every ribbon: `side` (genus or miRNA), `source`, `target`, `value` (width), `signed_delta` (miRNA side), `fill`. |",
-  "| `sankey_mirnas.tsv` | miRNAs shown: the 8 human miRNAs with the smallest DESeq2 p in Fig 1A, plus bkv-miR-B1-5p and bkv-miR-B1-3p (= jcv-miR-J1-3p). |", "",
+  "| `sankey_mirnas.tsv` | miRNAs shown: all human miRNAs with nominal DESeq2 p < 0.05 (as in the volcano and Fig 2A), plus bkv-miR-B1-5p and bkv-miR-B1-3p (= jcv-miR-J1-3p). |", "",
   "Left ribbon width: genus relative abundance within Bacteria in that sample (%), after the mean relative abundance > 0.1% filter; genera reaching >= 10% in at least one sample are shown (colours grouped by phylum), the rest pooled as Other. Each sample sums to 100%.",
   sprintf("Right ribbon width: |log2(DESeq2-normalised count + 1) - mean of the controls| for that sample; only values >= %.1f are drawn. Colour: above or below the control mean; viral miRNA in purple.", MIN_DELTA),
   "The two sides use independent scales (see scale bars). Each sample is drawn as a stacked bar of its genus composition; the grey strip next to it shows urinary BKPyV DNA from the metagenome (log10 read pairs per million; colour bar).",
