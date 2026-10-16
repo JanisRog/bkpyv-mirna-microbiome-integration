@@ -163,18 +163,20 @@ pA <- ggplot(bar, aes(sample_id, 100 * ra, fill = genus)) + geom_col(width = 0.9
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 7), strip.background = element_blank(),
         strip.text = element_text(face = "bold"), legend.text = element_text(face = "italic", size = 8),
         legend.key.size = unit(0.35, "cm"))
-alab <- c("Richness", "Richness\n(rarefied)", "Shannon")
-al <- alpha |> dplyr::select(sample_id, group, observed, observed_rarefied, shannon) |>
-  pivot_longer(c(observed, observed_rarefied, shannon)) |>
-  mutate(name = factor(alab[match(name, c("observed", "observed_rarefied", "shannon"))], levels = alab))
-al_lab <- alpha_test |> mutate(name = factor(alab, levels = alab), lab = sprintf("p = %.2g", p))
+# figure shows rarefied richness (depth-matched) and Shannon; raw richness is in alpha_tests.tsv / the text
+alab <- c(observed_rarefied = "Richness (rarefied)", shannon = "Shannon index")
+al <- alpha |> dplyr::select(sample_id, group, observed_rarefied, shannon) |>
+  pivot_longer(c(observed_rarefied, shannon)) |>
+  mutate(name = factor(alab[name], levels = alab))
+al_lab <- alpha_test |> filter(metric %in% names(alab)) |>
+  mutate(name = factor(alab[metric], levels = alab), lab = sprintf("p = %.2g", p))
 pB <- ggplot(al, aes(group, value, colour = group)) + geom_boxplot(outlier.shape = NA, colour = "grey40", width = 0.5) +
   geom_point(position = position_jitter(width = 0.1, seed = 1), size = 1.8) +
   geom_text(data = al_lab, aes(x = 1.5, y = Inf, label = lab), vjust = 1.4, size = 3, inherit.aes = FALSE) +
   facet_wrap(~name, scales = "free_y") + scale_colour_manual(values = cols, guide = "none") +
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.18))) +
   labs(x = NULL, y = "Alpha diversity") + theme_bw(base_size = 10) +
-  theme(strip.background = element_blank(), axis.text.x = element_text(angle = 30, hjust = 1))
+  theme(strip.background = element_blank(), strip.text = element_text(face = "bold"))
 pC <- ggplot(pcs, aes(PC1, PC2, colour = group)) + geom_point(size = 2.3) +
   stat_ellipse(level = 0.68, linetype = "dashed", show.legend = FALSE) +
   scale_colour_manual(values = cols, name = NULL) +
