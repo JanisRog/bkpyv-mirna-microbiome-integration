@@ -53,8 +53,9 @@ hm <- ggplot(pd, aes(feature, miRNA, fill = rho)) +
   geom_hline(yintercept = c(length(VIRAL) + 0.5, length(VIRAL) + length(down) + 0.5), linewidth = 0.4, colour = "grey30") +
   scale_fill_gradient2(low = "#2166AC", mid = "white", high = "#B2182B", limits = c(-1, 1), name = "Spearman\nrho") +
   scale_y_discrete(labels = ylab) +
-  labs(x = NULL, y = NULL, caption = sprintf("n = %d paired samples. Dot: nominal p < 0.05; *: FDR q < 0.05 (%d pairs tested).",
-                                             length(samples), nrow(res))) +
+  # the FDR symbol is only explained if any pair reaches q < 0.05 (none did; stated in the text instead)
+  labs(x = NULL, y = NULL, caption = sprintf("n = %d paired samples. Dot: nominal p < 0.05%s.", length(samples),
+                                             if (any(res$q < 0.05)) "; *: FDR q < 0.05" else "")) +
   theme_minimal(base_size = 10) +
   scale_x_discrete(labels = function(x) parse(text = ifelse(x == "Urinary BKPyV DNA", "bold('Urinary BKPyV DNA')",
                                                              sprintf("italic('%s')", x)))) +

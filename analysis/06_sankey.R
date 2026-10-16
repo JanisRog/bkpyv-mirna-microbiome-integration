@@ -142,20 +142,22 @@ p <- ggplot() +
            colour = "black", size = 3.2, fontface = "bold") +
   # scale bars
   annotate("rect", xmin = 0.25, xmax = 0.29, ymin = -0.06, ymax = -0.06 + 25 * L_SCALE, fill = "grey40") +
-  annotate("text", x = 0.31, y = -0.06 + 25 * L_SCALE / 2, label = "25% of bacteria", hjust = 0, size = 2.7) +
+  annotate("text", x = 0.31, y = -0.06 + 25 * L_SCALE / 2, label = "= 25% of bacteria", hjust = 0, size = 2.7) +
   annotate("rect", xmin = 1.25, xmax = 1.29, ymin = -0.06, ymax = -0.06 + 2 * R_SCALE, fill = "grey40") +
-  annotate("text", x = 1.31, y = -0.06 + 2 * R_SCALE / 2, label = "4-fold (2 log2 units) from control mean", hjust = 0, size = 2.7) +
+  annotate("text", x = 1.31, y = -0.06 + 2 * R_SCALE / 2, label = "= 4-fold above/below control mean", hjust = 0, size = 2.7) +
   scale_fill_manual(values = fills, breaks = names(dcol),
                     labels = c("Human miRNA, above control mean", "Human miRNA, below control mean",
                                "Viral miRNA, above control mean", "Viral miRNA, below control mean"), name = NULL) +
-  scale_colour_gradient(low = "grey90", high = "black", name = expression("Urinary BKPyV DNA (log"[10]*" pairs per million)")) +
+  scale_colour_gradient(low = "grey90", high = "black", name = expression(atop("Urinary BKPyV DNA", "(log"[10]*" pairs per million)"))) +
   coord_cartesian(xlim = c(-0.45, 2.85), ylim = c(-0.08, 1.07), clip = "off") +
-  guides(fill = guide_legend(nrow = 2, override.aes = list(alpha = 0.8)), colour = guide_colourbar(barheight = 0.5, barwidth = 6)) +
-  theme_void(base_size = 10) + theme(legend.position = "bottom", legend.box = "vertical", plot.margin = margin(10, 10, 5, 10),
+  guides(fill = guide_legend(ncol = 1, order = 1, override.aes = list(alpha = 0.8)),
+         colour = guide_colourbar(order = 2, barheight = 5, barwidth = 0.6, title.position = "top")) +
+  theme_void(base_size = 10) + theme(legend.position = "right", legend.box = "vertical", legend.justification = "center",
+                                     legend.spacing.y = unit(0.6, "cm"), plot.margin = margin(10, 10, 5, 10),
                                      plot.background = element_rect(fill = "white", colour = NA))
 saveRDS(p, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
-ggsave(file.path(out, "Fig2_sankey.pdf"), p, width = 8.8, height = 7.5, bg = "white")
-ggsave(file.path(out, "Fig2_sankey.png"), p, width = 8.8, height = 7.5, dpi = 300, bg = "white")
+ggsave(file.path(out, "Fig2_sankey.pdf"), p, width = 11, height = 6.5, bg = "white")
+ggsave(file.path(out, "Fig2_sankey.png"), p, width = 11, height = 6.5, dpi = 300, bg = "white")
 
 write_tsv(links, file.path(out, "sankey_links.tsv"))
 write_tsv(tibble(miRNA = mir, rank_by_p = match(mir, de$miRNA), log2FC = de$log2FC[match(mir, de$miRNA)],
