@@ -17,9 +17,13 @@ out <- args[6]; dir.create(out, showWarnings = FALSE, recursive = TRUE)
 yl  <- readRDS(file.path(args[1], "Fig1A_yield.rds"))
 vol <- readRDS(file.path(args[2], "Fig1A_volcano.rds"))
 mb  <- readRDS(file.path(args[3], "fig_panels.rds"))
-f1 <- wrap_plots(wrap_elements(full = yl), wrap_elements(full = vol + theme(legend.position = "top")),
-                 wrap_elements(full = mb$alpha), wrap_elements(full = mb$pca + theme(legend.position = "bottom")),
-                 ncol = 2, widths = c(1, 1.15)) + plot_annotation(tag_levels = "A")
+# top row: narrow yield panel, wide volcano with its legend on the right; bottom row: alpha | PCA
+vol_r <- vol + theme(legend.position = "right") +
+  guides(colour = guide_legend(ncol = 1), shape = guide_legend(ncol = 1))
+top <- wrap_elements(full = yl) | wrap_elements(full = vol_r)
+bot <- wrap_elements(full = mb$alpha) | wrap_elements(full = mb$pca + theme(legend.position = "bottom"))
+f1 <- (top + plot_layout(widths = c(0.62, 1.38))) / (bot + plot_layout(widths = c(1, 1.15))) +
+  plot_annotation(tag_levels = "A")
 ggsave(file.path(out, "Figure1.pdf"), f1, width = 12, height = 10, bg = "white")
 ggsave(file.path(out, "Figure1.png"), f1, width = 12, height = 10, dpi = 300, bg = "white")
 
