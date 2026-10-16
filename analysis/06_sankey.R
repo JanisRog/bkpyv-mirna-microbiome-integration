@@ -9,7 +9,7 @@
 #                 (3p sequence identical to jcv-miR-J1-3p)
 #   node order  : genera and miRNAs ordered by the mean position of their samples (fewer crossings)
 #   middle      : one stacked bar per sample = its genus composition (ribbons flow into their segment),
-#                 thin black outline; grey strip right of it = urinary BKPyV DNA (metagenome)
+#                 no outline (ribbons run seamlessly into it); grey strip right of it = urinary BKPyV DNA (metagenome)
 # Concept follows the descriptive Sankey of the first submission, simplified (genus level, fewer elements).
 #
 # Usage: Rscript 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_species_est_reads.tsv>
@@ -119,8 +119,6 @@ bk <- qc |> transmute(sample_id, bk = log10(mg_bk_per_million_qc + 1)) |> mutate
 bk_pal <- scales::seq_gradient_pal("grey90", "black")
 bk <- bk |> mutate(fill = bk_pal(scales::rescale(bk, from = range(bk))),
                    xmin = X_S + SNODE_W / 2, xmax = X_S + SNODE_W / 2 + BK_W, ymin = y - S_H / 2, ymax = y + S_H / 2)
-outline <- tibble(sample = ord, y = s_y, col = grp_col[as.character(qc$group[match(ord, qc$sample_id)])]) |>
-  mutate(xmin = X_S - SNODE_W / 2, xmax = X_S + SNODE_W / 2 + BK_W, ymin = y - S_H / 2, ymax = y + S_H / 2)
 lab_g <- tibble(x = X_G - NODE_W, y = g_y, lab = names(g_y), it = names(g_y) != "Other")
 lab_m <- tibble(x = X_M + NODE_W, y = m_y, lab = ifelse(mir == "bkv-miR-B1-3p", "bkv-miR-B1-3p / jcv-miR-J1-3p", sub("^hsa-", "", mir)))
 
@@ -132,8 +130,6 @@ p <- ggplot() +
   geom_text(data = lab_m, aes(x, y, label = lab), hjust = 0, size = 3) +
   geom_rect(data = seg, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = seg$fill, colour = NA) +
   geom_rect(data = bk, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = bk$fill, colour = NA) +
-  geom_rect(data = outline, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = NA,
-            colour = "black", linewidth = 0.3) +
   geom_point(data = bk, aes(x = xmin, y = y, colour = bk), alpha = 0) +          # invisible; drives the colour bar
   geom_label(data = tibble(x = X_S - SNODE_W / 2 - 0.012, y = s_y, lab = ord), aes(x, y, label = lab),
              hjust = 1, size = 2.7, fontface = "bold", fill = scales::alpha("white", 0.85), label.size = 0,
