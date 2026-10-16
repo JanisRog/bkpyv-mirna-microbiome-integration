@@ -78,20 +78,24 @@ p <- ggplot(long, aes(group, value)) +
 ggsave(file.path(out, "FigS_mirna_yield.pdf"), p, width = 9, height = 3.6)
 ggsave(file.path(out, "FigS_mirna_yield.png"), p, width = 9, height = 3.6, dpi = 300)
 
-# main Figure 1A panel: ONE panel. y = human miRNA reads (pre-specified primary yield metric);
-# filled = passed ERCC criterion 1 (used in Fig 1B), open = failed; all samples
+# main Figure 1A panel: ONE panel. y = reads on annotated human RNA (the ERCC criterion-1 metric), dashed line =
+# ERCC threshold, so the panel shows exactly which samples enter Fig 1B; filled = passed (used in B), open = failed.
+# (The pre-specified primary yield metric, human miRNA reads, is reported in the text: p in mirna_yield_by_group.tsv.)
 f1 <- d |> mutate(qc = factor(ifelse(ercc_c1_pass, "Passed QC (used in B)", "Failed QC"),
                               levels = c("Passed QC (used in B)", "Failed QC")))
-f1lab <- sprintf("p = %.2g", res$p_wilcoxon[res$metric == "mi_counts_hsa"])
-pA <- ggplot(f1, aes(group, mi_counts_hsa)) +
+f1lab <- sprintf("p = %.2g", res$p_wilcoxon[res$metric == "ercc_reads_annotated"])
+pA <- ggplot(f1, aes(group, ercc_reads_annotated)) +
   geom_boxplot(outlier.shape = NA, width = 0.5, colour = "grey40") +
+  geom_hline(yintercept = ERCC_MIN_ANNOTATED, linetype = "dashed", colour = "grey30") +
+  annotate("label", x = 1.5, y = ERCC_MIN_ANNOTATED, label = "ERCC", size = 2.8, colour = "grey30", fill = "white",
+           label.size = 0, label.padding = unit(0.08, "lines")) +
   geom_point(aes(colour = group, shape = qc), position = position_jitter(width = 0.12, seed = 1), size = 2.2, stroke = 0.9) +
   annotate("text", x = 1.5, y = Inf, label = f1lab, vjust = 1.5, size = 3.2) +
   scale_y_log10(labels = scales::label_number(scale_cut = scales::cut_short_scale()),
                 expand = expansion(mult = c(0.05, 0.12))) +
   scale_colour_manual(values = c(control = "#4C78A8", DNAemia = "#E45756"), guide = "none") +
   scale_shape_manual(values = c("Passed QC (used in B)" = 16, "Failed QC" = 1), name = NULL) +
-  labs(x = NULL, y = "Human miRNA reads per sample (log scale)") +
+  labs(x = NULL, y = "Reads on annotated human RNA per sample (log scale)") +
   theme_bw(base_size = 10) + theme(panel.grid.minor = element_blank(), legend.position = "bottom")
 saveRDS(pA, file.path(out, "Fig1A_yield.rds"))   # for analysis/07_main_figures.R
 writeLines(c(
