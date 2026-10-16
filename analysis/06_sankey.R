@@ -115,7 +115,7 @@ gcol <- c(gcol[top], Other = "grey85")
 phylum_note <- paste(sprintf("%s: %s", names(split(top, gp)), sapply(split(top, gp), paste, collapse = ", ")), collapse = "; ")
 dcol <- c(human_up = "#D6604D", human_down = "#4393C3", viral_up = "#7B3294", viral_down = "#E7298A")
 fills <- c(gcol, dcol)
-grp_col <- c(control = "#4C78A8", DNAemia = "#E45756")
+grp_col <- c(control = "#4C78A8", DNAemia = "#E45756")   # identical to Figure 1
 
 nodes <- bind_rows(
   tibble(x = X_G, y = g_y, h = g_h, fill = "grey35"),
@@ -140,14 +140,15 @@ p <- ggplot() +
   geom_rect(data = bk, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = bk$fill, colour = NA) +
   geom_point(data = bk, aes(x = xmin, y = y, colour = bk), alpha = 0) +          # invisible; drives the colour bar
   geom_label(data = tibble(x = X_S - SNODE_W / 2 - 0.012, y = s_y, lab = ord), aes(x, y, label = lab),
-             hjust = 1, size = 2.7, fontface = "bold", fill = scales::alpha("white", 0.85), label.size = 0,
-             label.padding = unit(0.06, "lines")) +
+             hjust = 1, size = 3.3, fontface = "bold", fill = scales::alpha("white", 0.85), label.size = 0,
+             label.padding = unit(0.07, "lines"),
+             colour = grp_col[as.character(qc$group[match(ord, qc$sample_id)])]) +   # group colours as in Fig 1
   annotate("text", x = X_S + SNODE_W / 2 + BK_W / 2, y = max(s_y) + S_H / 2 + 0.015, label = "BK", size = 2.3) +
   annotate("text", x = c(X_G, X_S, X_M), y = 1.06, label = c("Genus", "Sample", "miRNA"), fontface = "bold", size = 3.6) +
   annotate("text", x = X_S, y = max(s_y[!is_case]) + 0.075, label = "Control",
-           colour = "black", size = 3.2, fontface = "bold") +
+           colour = grp_col[["control"]], size = 3.2, fontface = "bold") +
   annotate("text", x = X_S, y = max(s_y[is_case]) + 0.055, label = "DNAemia",
-           colour = "black", size = 3.2, fontface = "bold") +
+           colour = grp_col[["DNAemia"]], size = 3.2, fontface = "bold") +
   # scale bars
   annotate("rect", xmin = 0.25, xmax = 0.29, ymin = -0.06, ymax = -0.06 + 25 * L_SCALE, fill = "grey40") +
   annotate("text", x = 0.31, y = -0.06 + 25 * L_SCALE / 2, label = "= 25% of bacteria", hjust = 0, size = 2.7) +
