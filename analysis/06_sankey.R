@@ -117,13 +117,13 @@ lab_m <- tibble(x = X_M + NODE_W, y = m_y, lab = ifelse(mir == "bkv-miR-B1-3p", 
 
 p <- ggplot() +
   geom_polygon(data = P, aes(x, y, group = id, fill = fill), alpha = 0.55, colour = NA) +
-  geom_rect(data = nodes, aes(xmin = x - NODE_W / 2, xmax = x + NODE_W / 2, ymin = y - h / 2, ymax = y + h / 2),
-            fill = nodes$fill, colour = NA) +
+  geom_rect(data = nodes |> mutate(xmin = x - NODE_W / 2, xmax = x + NODE_W / 2, ymin = y - h / 2, ymax = y + h / 2),
+            aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = nodes$fill, colour = NA) +
   geom_text(data = lab_g, aes(x, y, label = lab, fontface = ifelse(it, "italic", "plain")), hjust = 1, size = 3) +
   geom_text(data = lab_m, aes(x, y, label = lab), hjust = 0, size = 3) +
   geom_label(data = tibble(x = X_S, y = s_y, lab = ord), aes(x, y, label = lab), size = 2.7,
              label.size = 0, label.padding = unit(0.08, "lines"), fill = "white") +
-  geom_point(data = bk, aes(x = X_S + NODE_W * 1.6, y = y, colour = bk), size = 2.4) +
+  geom_point(data = bk |> mutate(x = X_S + NODE_W * 1.6), aes(x = x, y = y, colour = bk), size = 2.4) +
   annotate("text", x = c(X_G, X_S, X_M), y = 1.04, label = c("Genus", "Sample", "miRNA"), fontface = "bold", size = 3.6) +
   annotate("text", x = X_S, y = max(s_y[!is_case]) + 0.045, label = "Control",
            colour = grp_col[["control"]], size = 3.2, fontface = "bold") +
@@ -142,6 +142,7 @@ p <- ggplot() +
   guides(fill = guide_legend(nrow = 2, override.aes = list(alpha = 0.8)), colour = guide_colourbar(barheight = 0.5, barwidth = 6)) +
   theme_void(base_size = 10) + theme(legend.position = "bottom", legend.box = "vertical", plot.margin = margin(10, 10, 5, 10),
                                      plot.background = element_rect(fill = "white", colour = NA))
+saveRDS(p, file.path(out, "Fig2_sankey.rds"))   # for analysis/07_main_figures.R
 ggsave(file.path(out, "Fig2_sankey.pdf"), p, width = 8.8, height = 7.5, bg = "white")
 ggsave(file.path(out, "Fig2_sankey.png"), p, width = 8.8, height = 7.5, dpi = 300, bg = "white")
 

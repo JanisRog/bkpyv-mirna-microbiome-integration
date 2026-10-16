@@ -9,9 +9,10 @@ Statistics and figures, run on the tables from `pipeline/03_collect_qc.py`. Ever
 | `02_mirna_de.R` | Differential miRNA expression (DESeq2 + edgeR QL; viral miRNAs as separate family); Fig 1A volcano. Sets: `primary` (ERCC criterion 1) and `sensitivity` (>=10k human miRNA counts) |
 | `03_compare_nog2024.py` | Looks up the 29 miRNAs reported by Nog et al. 2024 in our DE results |
 | `04_mir200_shedding.R` | Pre-specified check: miR-200 family vs % human DNA and urinary BKPyV DNA; cell-origin miRNA profile |
-| `05_microbiome.R` | Bacterial microbiome (MetaPhlAn 4): mean-RA > 0.1% filter, optional cross-talk filter, alpha (raw + rarefied), Aitchison PERMANOVA, ALDEx2; urinary BK/JC DNA; Fig 1B. Runs: all 22 (supplement), `0.01` cross-talk sensitivity, `0 S18` without the UTI control, and the 11 paired samples (main Figure 1) |
+| `05_microbiome.R` | Bacterial microbiome (MetaPhlAn 4): mean-RA > 0.1% filter, optional cross-talk filter, alpha (raw + rarefied), Aitchison PERMANOVA, ALDEx2; urinary BK/JC DNA; Fig 1B. Runs: all 22 (supplement), `0.01` cross-talk sensitivity, `0 S18` without the UTI control, and the 11 paired samples (input for Figure 2) |
 | `06_sankey.R` | Figure 2: descriptive Sankey genus -> sample -> miRNA (paired samples; no tests). Args: genus table, DE dir, QC table, out dir, MetaPhlAn est-reads table (for phylum colours) |
-| `07_main_figures.R` | Assembles Figure 1 (volcano + paired-sample alpha diversity and PCA) from saved panels |
+| `07_main_figures.R` | Assembles Figure 1 (A volcano; B/C microbiome, all 22) and Figure 2 (A heatmap; B Sankey) from saved panels |
+| `08_heatmap.R` | Figure 2A: Spearman correlations, nominal DE miRNAs + viral vs genera (prevalence >= 3/11) and urinary BKPyV DNA; BH-FDR |
 
 
 
