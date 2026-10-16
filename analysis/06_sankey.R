@@ -8,7 +8,8 @@
 #   miRNAs      : the 8 human miRNAs with the smallest DESeq2 p (Fig 1A) + bkv-miR-B1-5p and bkv-miR-B1-3p
 #                 (3p sequence identical to jcv-miR-J1-3p)
 #   node order  : genera and miRNAs ordered by the mean position of their samples (fewer crossings)
-#   middle      : samples grouped control / DNAemia; dot = urinary BKPyV DNA (metagenome)
+#   middle      : one stacked bar per sample = its genus composition (ribbons flow into their segment),
+#                 outlined in the group colour; grey strip right of it = urinary BKPyV DNA (metagenome)
 # Concept follows the descriptive Sankey of the first submission, simplified (genus level, fewer elements).
 #
 # Usage: Rscript 06_sankey.R <genus_relative_abundance.tsv> <de_dir> <qc_combined.tsv> <out_dir> <metaphlan_species_est_reads.tsv>
@@ -41,7 +42,7 @@ top <- rownames(g)[apply(g, 1, max) >= MIN_GENUS_MAX]          # genera reaching
 g <- rbind(g[top, , drop = FALSE], Other = colSums(g[setdiff(rownames(g), top), , drop = FALSE]))
 
 # ---- geometry --------------------------------------------------------------------------------
-X_G <- 0; X_S <- 1; X_M <- 2; NODE_W <- 0.035
+X_G <- 0; X_S <- 1; X_M <- 2; NODE_W <- 0.035; SNODE_W <- 0.08; BK_W <- 0.03   # sample bar and BK strip widths
 ns <- length(ord)
 is_case <- qc$group[match(ord, qc$sample_id)] == "DNAemia"
 s_y <- setNames(seq(0.93, 0.04, length.out = ns), ord); s_y[is_case] <- s_y[is_case] - 0.05
@@ -64,14 +65,15 @@ ribbon <- function(x0, x1, y0a, y0b, y1a, y1b, id) {      # smooth band between 
   t <- seq(0, 1, length.out = 40); s <- 3 * t^2 - 2 * t^3; x <- x0 + (x1 - x0) * t
   tibble(id = id, x = c(x, rev(x)), y = c(y0a + (y1a - y0a) * s, rev(y0b + (y1b - y0b) * s)))
 }
-polys <- list(); meta <- list(); k <- 0
+polys <- list(); meta <- list(); segs <- list(); k <- 0
 # left: genus -> sample (each sample's 100 % stacked top-down in genus order)
 g_cur <- g_y + g_h / 2; s_cur <- s_y + 100 * L_SCALE / 2
 for (gn in rownames(g)) for (s in ord) {
   v <- g[gn, s]; if (v <= 0) next
   h <- v * L_SCALE; k <- k + 1
-  polys[[k]] <- ribbon(X_G + NODE_W / 2, X_S - NODE_W / 2, g_cur[gn], g_cur[gn] - h, s_cur[s], s_cur[s] - h, k)
+  polys[[k]] <- ribbon(X_G + NODE_W / 2, X_S - SNODE_W / 2, g_cur[gn], g_cur[gn] - h, s_cur[s], s_cur[s] - h, k)
   meta[[k]] <- tibble(id = k, side = "genus", source = gn, target = s, value = v, fill = gn)
+  segs[[k]] <- tibble(sample = s, genus = gn, ymax = s_cur[s], ymin = s_cur[s] - h)
   g_cur[gn] <- g_cur[gn] - h; s_cur[s] <- s_cur[s] - h
 }
 # right: sample -> miRNA
@@ -81,7 +83,7 @@ for (s in ord) for (m in mir) {
   h <- v * R_SCALE; k <- k + 1
   dir <- if (delta[m, s] > 0) "up" else "down"
   fill <- if (m %in% VIRAL) paste0("viral_", dir) else paste0("human_", dir)
-  polys[[k]] <- ribbon(X_S + NODE_W / 2, X_M - NODE_W / 2, s_cur[s], s_cur[s] - h, m_cur[m], m_cur[m] - h, k)
+  polys[[k]] <- ribbon(X_S + SNODE_W / 2 + BK_W, X_M - NODE_W / 2, s_cur[s], s_cur[s] - h, m_cur[m], m_cur[m] - h, k)
   meta[[k]] <- tibble(id = k, side = "miRNA", source = s, target = m, value = v, signed_delta = delta[m, s], fill = fill)
   s_cur[s] <- s_cur[s] - h; m_cur[m] <- m_cur[m] - h
 }
@@ -109,9 +111,16 @@ grp_col <- c(control = "#4C78A8", DNAemia = "#E45756")
 
 nodes <- bind_rows(
   tibble(x = X_G, y = g_y, h = g_h, fill = "grey35"),
-  tibble(x = X_S, y = s_y, h = 100 * L_SCALE, fill = grp_col[as.character(qc$group[match(ord, qc$sample_id)])]),
   tibble(x = X_M, y = m_y, h = pmax(m_h, 0.004), fill = ifelse(mir %in% VIRAL, "#7B3294", "grey35")))
+S_H <- 100 * L_SCALE
+seg <- bind_rows(segs) |> mutate(xmin = X_S - SNODE_W / 2, xmax = X_S + SNODE_W / 2,
+                                  fill = scales::alpha(gcol[genus], 0.55))   # same transparency as the ribbons
 bk <- qc |> transmute(sample_id, bk = log10(mg_bk_per_million_qc + 1)) |> mutate(y = s_y[sample_id])
+bk_pal <- scales::seq_gradient_pal("grey90", "black")
+bk <- bk |> mutate(fill = bk_pal(scales::rescale(bk, from = range(bk))),
+                   xmin = X_S + SNODE_W / 2, xmax = X_S + SNODE_W / 2 + BK_W, ymin = y - S_H / 2, ymax = y + S_H / 2)
+outline <- tibble(sample = ord, y = s_y, col = grp_col[as.character(qc$group[match(ord, qc$sample_id)])]) |>
+  mutate(xmin = X_S - SNODE_W / 2, xmax = X_S + SNODE_W / 2 + BK_W, ymin = y - S_H / 2, ymax = y + S_H / 2)
 lab_g <- tibble(x = X_G - NODE_W, y = g_y, lab = names(g_y), it = names(g_y) != "Other")
 lab_m <- tibble(x = X_M + NODE_W, y = m_y, lab = ifelse(mir == "bkv-miR-B1-3p", "bkv-miR-B1-3p / jcv-miR-J1-3p", sub("^hsa-", "", mir)))
 
@@ -121,13 +130,19 @@ p <- ggplot() +
             aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = nodes$fill, colour = NA) +
   geom_text(data = lab_g, aes(x, y, label = lab, fontface = ifelse(it, "italic", "plain")), hjust = 1, size = 3) +
   geom_text(data = lab_m, aes(x, y, label = lab), hjust = 0, size = 3) +
-  geom_label(data = tibble(x = X_S, y = s_y, lab = ord), aes(x, y, label = lab), size = 2.7,
-             label.size = 0, label.padding = unit(0.08, "lines"), fill = "white") +
-  geom_point(data = bk |> mutate(x = X_S + NODE_W * 1.6), aes(x = x, y = y, colour = bk), size = 2.4) +
-  annotate("text", x = c(X_G, X_S, X_M), y = 1.04, label = c("Genus", "Sample", "miRNA"), fontface = "bold", size = 3.6) +
-  annotate("text", x = X_S, y = max(s_y[!is_case]) + 0.045, label = "Control",
+  geom_rect(data = seg, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = seg$fill, colour = NA) +
+  geom_rect(data = bk, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = bk$fill, colour = NA) +
+  geom_rect(data = outline, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = NA,
+            colour = outline$col, linewidth = 0.7) +
+  geom_point(data = bk, aes(x = xmin, y = y, colour = bk), alpha = 0) +          # invisible; drives the colour bar
+  geom_label(data = tibble(x = X_S - SNODE_W / 2 - 0.012, y = s_y, lab = ord), aes(x, y, label = lab),
+             hjust = 1, size = 2.7, fontface = "bold", fill = scales::alpha("white", 0.85), label.size = 0,
+             label.padding = unit(0.06, "lines")) +
+  annotate("text", x = X_S + SNODE_W / 2 + BK_W / 2, y = max(s_y) + S_H / 2 + 0.015, label = "BK", size = 2.3) +
+  annotate("text", x = c(X_G, X_S, X_M), y = 1.06, label = c("Genus", "Sample", "miRNA"), fontface = "bold", size = 3.6) +
+  annotate("text", x = X_S, y = max(s_y[!is_case]) + 0.075, label = "Control",
            colour = grp_col[["control"]], size = 3.2, fontface = "bold") +
-  annotate("text", x = X_S, y = max(s_y[is_case]) + 0.045, label = "DNAemia",
+  annotate("text", x = X_S, y = max(s_y[is_case]) + 0.075, label = "DNAemia",
            colour = grp_col[["DNAemia"]], size = 3.2, fontface = "bold") +
   # scale bars
   annotate("rect", xmin = 0.25, xmax = 0.29, ymin = -0.06, ymax = -0.06 + 25 * L_SCALE, fill = "grey40") +
@@ -138,7 +153,7 @@ p <- ggplot() +
                     labels = c("Human miRNA, above control mean", "Human miRNA, below control mean",
                                "Viral miRNA, above control mean", "Viral miRNA, below control mean"), name = NULL) +
   scale_colour_gradient(low = "grey90", high = "black", name = expression("Urinary BKPyV DNA (log"[10]*" pairs per million)")) +
-  coord_cartesian(xlim = c(-0.45, 2.85), ylim = c(-0.08, 1.05), clip = "off") +
+  coord_cartesian(xlim = c(-0.45, 2.85), ylim = c(-0.08, 1.07), clip = "off") +
   guides(fill = guide_legend(nrow = 2, override.aes = list(alpha = 0.8)), colour = guide_colourbar(barheight = 0.5, barwidth = 6)) +
   theme_void(base_size = 10) + theme(legend.position = "bottom", legend.box = "vertical", plot.margin = margin(10, 10, 5, 10),
                                      plot.background = element_rect(fill = "white", colour = NA))
@@ -159,7 +174,7 @@ writeLines(c(
   "| `sankey_mirnas.tsv` | miRNAs shown: the 8 human miRNAs with the smallest DESeq2 p in Fig 1A, plus bkv-miR-B1-5p and bkv-miR-B1-3p (= jcv-miR-J1-3p). |", "",
   "Left ribbon width: genus relative abundance within Bacteria in that sample (%), after the mean relative abundance > 0.1% filter; genera reaching >= 10% in at least one sample are shown (colours grouped by phylum), the rest pooled as Other. Each sample sums to 100%.",
   sprintf("Right ribbon width: |log2(DESeq2-normalised count + 1) - mean of the controls| for that sample; only values >= %.1f are drawn. Colour: above or below the control mean; viral miRNA in purple.", MIN_DELTA),
-  "The two sides use independent scales (see scale bars). Dot next to each sample: urinary BKPyV DNA from the metagenome.",
+  "The two sides use independent scales (see scale bars). Each sample is drawn as a stacked bar of its genus composition (outline = group colour); the grey strip next to it shows urinary BKPyV DNA from the metagenome (log10 read pairs per million; colour bar).",
   paste0("Genus colours by phylum (blue Pseudomonadota, orange Bacillota (Firmicutes), green Actinomycetota, purple Bacteroidota, red Mycoplasmatota): ", phylum_note, ".")
 ), file.path(out, "README.md"))
 writeLines(capture.output(sessionInfo()), file.path(out, "sessionInfo.txt"))
