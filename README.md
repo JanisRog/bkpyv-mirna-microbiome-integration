@@ -5,14 +5,14 @@ metagenomics from 22 kidney transplant recipients (11 with BK polyomavirus DNAem
 It covers differential expression of human and BKPyV miRNAs, the urinary bacterial microbiome, and
 microbiome–miRNA associations.
 
-> Manuscript in preparation (short communication, *Transplant Infectious Disease*). Citation will be added on publication.
+> Accompanies: Rogenmoser J, Egli A, Nog R. *Urinary microbiome context and viral/host microRNA profiles of BK polyomavirus reactivation in kidney transplant recipients.* Brief Communication, *Transplant Infectious Disease* (under revision). The citation will be updated on publication. To cite this code, see `CITATION.cff` or the Zenodo DOI.
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
 | `pipeline/` | Read processing on a SLURM cluster with Apptainer containers (QC, quantification, profiling) |
-| `analysis/` | Statistics and figures from the processed tables |
+| `analysis/` | Statistics, main and supplementary figures from the processed tables (see `analysis/README.md` for the full run order) |
 
 ## Pipeline
 
@@ -51,7 +51,7 @@ The SLURM headers (partition, log paths) are set for the University of Zurich Sc
 ## Data availability
 
 - Shotgun metagenomes: NCBI BioProject [PRJNA1252894](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1252894).
-- Small RNA sequencing: available from the corresponding author upon reasonable request.
+- Small RNA sequencing: provided by Kieran A. Bates by permission; available on request to the corresponding author (rajat.nog@wmchealth.org) with permission of Kieran A. Bates.
 
 No patient-level clinical data are included in this repository.
 

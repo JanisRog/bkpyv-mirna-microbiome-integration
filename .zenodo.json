@@ -1,0 +1,15 @@
+{
+  "title": "Urinary miRNA and microbiome in kidney transplant recipients with BK polyomavirus DNAemia: analysis code",
+  "description": "Code for an independent reprocessing and integration of urinary small-RNA sequencing and shotgun metagenomics from 22 kidney transplant recipients (11 with BK polyomavirus DNAemia, 11 controls): SLURM/Apptainer read-processing pipeline (ERCC small-RNA QC, miRDeep2, MetaPhlAn 4, BKPyV/JCPyV DNA) and R analyses (DESeq2/edgeR, ALDEx2, Aitchison PERMANOVA, miRNA–genus correlations, figures). Accompanies a Brief Communication in Transplant Infectious Disease.",
+  "upload_type": "software",
+  "license": "MIT",
+  "creators": [
+    {"name": "Rogenmoser, Janis", "affiliation": "Institute of Medical Microbiology, University of Zurich"},
+    {"name": "Egli, Adrian", "affiliation": "Institute of Medical Microbiology, University of Zurich"},
+    {"name": "Nog, Rajat", "affiliation": "Department of Medicine, Westchester Medical Center"}
+  ],
+  "keywords": ["BK polyomavirus", "kidney transplantation", "urinary microbiome", "microRNA", "metagenomics"],
+  "related_identifiers": [
+    {"identifier": "PRJNA1252894", "relation": "isSupplementedBy", "scheme": "other"}
+  ]
+}
