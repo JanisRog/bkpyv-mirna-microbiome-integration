@@ -3,6 +3,9 @@ message: "If you use this code, please cite it as below."
 title: "Urinary miRNA and microbiome in kidney transplant recipients with BK polyomavirus DNAemia: analysis code"
 type: software
 license: MIT
+doi: "10.5281/zenodo.23805044"
+version: "v1.0.0"
+date-released: "2026-10-30"
 repository-code: "https://github.com/JanisRog/bkpyv-mirna-microbiome-integration"
 authors:
   - family-names: Rogenmoser

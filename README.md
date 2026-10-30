@@ -1,11 +1,13 @@
 # Urinary miRNA and microbiome in kidney transplant recipients with BKPyV-DNAemia
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23805044.svg)](https://doi.org/10.5281/zenodo.23805044)
+
 Code for an independent reprocessing and integration of urinary small-RNA sequencing and shotgun
 metagenomics from 22 kidney transplant recipients (11 with BK polyomavirus DNAemia, 11 controls).
 It covers differential expression of human and BKPyV miRNAs, the urinary bacterial microbiome, and
 microbiome–miRNA associations.
 
-> Accompanies: Rogenmoser J, Egli A, Nog R. *Urinary microbiome context and viral/host microRNA profiles of BK polyomavirus reactivation in kidney transplant recipients.* Brief Communication, *Transplant Infectious Disease* (under revision). The citation will be updated on publication. To cite this code, see `CITATION.cff` or the Zenodo DOI.
+> Accompanies: Rogenmoser J, Egli A, Nog R. *Urinary microbiome context and viral/host microRNA profiles of BK polyomavirus reactivation in kidney transplant recipients.* Brief Communication, *Transplant Infectious Disease* (under revision). The citation will be updated on publication. To cite this code: Rogenmoser J, Egli A, Nog R. Zenodo; 2026. https://doi.org/10.5281/zenodo.23805044 (v1.0.0; all versions: https://doi.org/10.5281/zenodo.23805043).
 
 ## Repository layout
 
