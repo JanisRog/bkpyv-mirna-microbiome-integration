@@ -4,12 +4,31 @@
   "upload_type": "software",
   "license": "MIT",
   "creators": [
-    {"name": "Rogenmoser, Janis", "affiliation": "Institute of Medical Microbiology, University of Zurich"},
-    {"name": "Egli, Adrian", "affiliation": "Institute of Medical Microbiology, University of Zurich"},
-    {"name": "Nog, Rajat", "affiliation": "Department of Medicine, Westchester Medical Center"}
+    {
+      "name": "Rogenmoser, Janis",
+      "affiliation": "Institute of Medical Microbiology, University of Zurich"
+    },
+    {
+      "name": "Egli, Adrian",
+      "affiliation": "Institute of Medical Microbiology, University of Zurich"
+    },
+    {
+      "name": "Nog, Rajat",
+      "affiliation": "Department of Medicine, Westchester Medical Center"
+    }
   ],
-  "keywords": ["BK polyomavirus", "kidney transplantation", "urinary microbiome", "microRNA", "metagenomics"],
+  "keywords": [
+    "BK polyomavirus",
+    "kidney transplantation",
+    "urinary microbiome",
+    "microRNA",
+    "metagenomics"
+  ],
   "related_identifiers": [
-    {"identifier": "PRJNA1252894", "relation": "isSupplementedBy", "scheme": "other"}
+    {
+      "identifier": "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1252894",
+      "relation": "isSupplementedBy",
+      "scheme": "url"
+    }
   ]
 }
